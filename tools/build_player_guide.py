@@ -53,7 +53,7 @@ table(b,['Resource','Where it comes from','What it is for'],[
 ['Metal','Ruins and Recycler conversion, trade, raids and recoveries','Advanced construction, Electronics and military hardware.'],
 ['Electronics','Ruins and Electronics Fabricator conversion, trade, raids and recoveries','Advanced utilities, factories, hardware and upgrades.'],
 ['Credits','Starting balance, selling on the market, direct trade, loans, investments or Credit raids','Market purchases and finance. Credits are not a physical-material storage item.'],
-['Oxygen','Town Hall, Oxygen Garden, Oxygen Generator, Industrial Oxygen Plant','Local coverage and operating capacity. It is not a stored resource.'],
+['Oxygen','Town Hall, Garden, Greenhouse, Hydroponics, Oxygen Garden, Oxygen Generator, Industrial Oxygen Plant','Local coverage and operating capacity. It is not a stored resource.'],
 ['Electricity','Town Hall, Solar Array, Wind Turbine, Generator Plant','Local coverage and operating capacity. It is not a stockpile or fuel item.']],[65,180,273])
 diagram(b,'materials','From basic materials to advanced equipment',['Staffed Salvage Depot makes renewable Scrap','Recycler uses Scrap to make Metal','Electronics Fabricator uses Scrap and Metal','Metal and Electronics feed buildings and factories','Hardware needs its own compatible storage'])
 h(b,'Read stock and rates together','Stock is what you hold now. Production is what you make per hour. Consumption is what you use per hour. Net rate is production minus consumption. A positive net rate builds a buffer; a negative rate drains it. For example, 120 accessible Food with a net loss of 4 per hour lasts about 30 hours if nothing else changes. A full store can show little actual production because surplus output cannot fit.')

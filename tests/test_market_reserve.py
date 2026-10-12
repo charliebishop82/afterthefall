@@ -32,13 +32,17 @@ class ReserveTests(unittest.TestCase):
         self.assertEqual(self.sql('SELECT count(*) FROM market_listings'),[(0,)])
 
     def test_limit_is_independent_per_settlement_and_resource(self):
+        # Leave room to purchase another resource after using Scrap allowance.
+        self.sql('UPDATE settlement_resources SET scrap=100 WHERE settlement_id=?',(self.sa,))
         self.buy(quantity=20)
-        with self.assertRaises(ValueError): self.buy()
+        with self.assertRaisesRegex(ValueError,'daily allowance'): self.buy()
         self.buy(aid=self.b,quantity=20)
         self.buy(resource='electronics',quantity=1)
         self.assertEqual(self.sql('SELECT count(*) FROM market_reserve_purchases'),[(3,)])
 
     def test_midnight_reset_does_not_accumulate(self):
+        # Calendar rollover is independent of storage: both daily buys must fit.
+        self.sql('UPDATE settlement_resources SET scrap=100 WHERE settlement_id=?',(self.sa,))
         # Isolate calendar accounting from a full day's survival simulation.
         def purchase(at,quantity):
             with account_scope(self.a),closing(connect_database(self.path)) as c,c:
@@ -46,10 +50,10 @@ class ReserveTests(unittest.TestCase):
                 c.execute('BEGIN IMMEDIATE')
                 market_reserve.purchase(c,read_state(c),'scrap',quantity,at)
         purchase(86399,20)
-        with self.assertRaises(ValueError): purchase(86399,1)
+        with self.assertRaisesRegex(ValueError,'daily allowance'): purchase(86399,1)
         purchase(86400,20)
-        with self.assertRaises(ValueError): purchase(86400,1)
-        with self.assertRaises(ValueError): purchase(4*86400,21)
+        with self.assertRaisesRegex(ValueError,'daily allowance'): purchase(86400,1)
+        with self.assertRaisesRegex(ValueError,'daily allowance'): purchase(4*86400,21)
 
     def test_rejections_preserve_balances_and_allowance(self):
         for resource,quantity in [('credits',1),('scrap',0),('scrap',True),('scrap',21)]:

@@ -1,4 +1,4 @@
-"""Pool migration, finite Bank funds and daily-reserve independence."""
+"""Pool migration, Bank ledger and daily-reserve independence."""
 from contextlib import closing
 import sqlite3
 import unittest
@@ -30,12 +30,15 @@ class PoolTests(unittest.TestCase):
         self.assertEqual(self.sql('SELECT count(*) FROM market_pool_trades'),[(0,)])
 
     def test_reserve_and_shared_stock_have_independent_limits(self):
+        # Make room for both 20-unit purchases without changing the real cap.
+        self.sql('UPDATE settlement_resources SET scrap=100 WHERE settlement_id=?',(self.sb,))
         self.action(market,self.a,'sell',resource='scrap',quantity=20)
         self.action(market,self.b,'reserve_buy',resource='scrap',quantity=20)
         self.assertEqual(self.sql('SELECT quantity FROM market_pool_stock'),[(20,)])
         self.action(market,self.b,'buy',resource='scrap',quantity=20)
         self.assertEqual(self.sql('SELECT quantity FROM market_pool_stock'),[(0,)])
-        with self.assertRaises(ValueError):self.action(market,self.b,'reserve_buy',resource='scrap',quantity=1)
+        self.assertEqual(self.state(self.b)['resources']['scrap'],140)
+        with self.assertRaisesRegex(ValueError,'daily allowance'):self.action(market,self.b,'reserve_buy',resource='scrap',quantity=1)
 
     def test_sale_uses_existing_bank_ledger_even_with_negative_reserve(self):
         self.sql('UPDATE season_bank SET credits=0')

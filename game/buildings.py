@@ -434,7 +434,7 @@ def change_building(path, action, *, building_type=None, building_id=None, x=Non
                     count = sum(c['assignment'] == 'production' and c['building_id'] == building_id for c in state['citizens'])
                     if count >= spec(state, building)['workers']:
                         raise ValueError('All production worker slots are filled.')
-                needs_oxygen = action=='builder' or not expanded(state) or catalog[building['building_type']]['oxygen_required']
+                needs_oxygen = action=='builder' or building['building_type'] in ('garden','greenhouse','hydroponics') or not expanded(state) or catalog[building['building_type']]['oxygen_required']
                 if needs_oxygen and building['building_type'] != 'town_hall' and coverage(state, building) < rules(state)['construction']['coverage_fraction']:
                     if not exposed or 'consequences' not in state['config']:raise ValueError('Danger: outside Oxygen. Confirm exposure before assigning this worker.')
                 if moving_admin:

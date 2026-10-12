@@ -1569,3 +1569,31 @@ Clicking a structure switches back to its existing inspection controls.
 Restart the game with its existing database command and refresh. No rules/save
 were changed. New optional UI regressions join automatic --include-ui discovery.
 Codex did not run tests or browser playtests.
+
+
+## Approved Garden Oxygen change (owner validation pending)
+Current v13 Garden has no operating Oxygen requirement/demand; it adds 1 Oxygen
+capacity per effective worker in a 3-tile radius alongside 6 Food/hour per worker.
+Two operating slots, 35 Scrap, 15-minute base build time, 150 HP, 10 Food storage,
+no electricity and no upgrades remain. Staff productivity and condition scale both
+outputs. Outside-coverage construction/initial Garden staffing still requires the
+existing exposure confirmation; no worker-safety exemption was added.
+Source workbook and legacy profiles are unchanged. Existing v13 Gardens use the
+new rule after server restart; no save migration/reset. Online guide/catalogue
+and its manifest are updated; the old PDF is explicitly marked previous-edition.
+Restart game/admin/bot runner so cached configuration reloads consistently.
+New Garden regressions join automatic parallel discovery. Codex ran no tests.
+
+
+## Consistent Food-building Oxygen rules (owner validation pending)
+Current v13 Garden, all three Greenhouse levels and all three Hydroponics levels
+produce 1 Oxygen capacity per effective worker in a 3-tile radius, without an
+operating Oxygen requirement/demand. Existing Food output, costs, build/upgrade
+times, staffing limits, unlocks, HP and storage are unchanged. Greenhouse and
+Hydroponics still require their existing electricity: lost power stops both
+Food and Oxygen output. Initial staffing/construction outside coverage still
+requires the existing explicit citizen exposure confirmation. Specialist Oxygen
+buildings are unchanged; original workbook and legacy profiles remain read-only.
+Restart game, admin and bot runner to reload cached rules; no save reset needed.
+Online guide/catalogue and manifest are updated. The PDF remains labelled as
+previous-edition. New regressions join automatic discovery; Codex ran no tests.

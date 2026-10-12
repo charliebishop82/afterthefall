@@ -236,16 +236,21 @@ class FlaskTests(unittest.TestCase):
         token = self.player('owner'); other = self.app.test_client(); peer = self.player('other', other)
         admin.grant(self.path, 'owner', self.now)
         self.assertEqual(self.console_post('/lobby', {'token':token,'action':'start','reason':'ready'}).status_code,303)
-        self.assertEqual(self.post('/market', {'token':token,'action':'list','resource':'metal','quantity':'2','unit_price':'3'}).status_code,303)
+        # Listings were explicitly replaced; stale forms must still be rejected.
+        self.assertEqual(self.post('/market', {'token':token,'action':'list','resource':'metal','quantity':'2','unit_price':'3'}).status_code,400)
+        self.assertEqual(self.post('/market', {'token':token,'action':'sell','resource':'metal','quantity':'2'}).status_code,303)
         self.assertEqual(self.post('/market', {'token':peer,'action':'cancel','listing_id':'1'}, other).status_code,400)
-        self.assertEqual(self.post('/market', {'token':peer,'action':'buy','listing_id':'1','quantity':'1'}, other).status_code,303)
+        self.assertEqual(self.post('/market', {'token':peer,'action':'buy','resource':'metal','quantity':'1'}, other).status_code,303)
         self.assertEqual(self.post('/trade', {'token':token,'action':'propose','recipient_id':'2','offered_resource':'scrap','offered_quantity':'2','requested_resource':'metal','requested_quantity':'1'}).status_code,303)
         self.assertEqual(self.post('/trade', {'token':peer,'action':'accept','trade_id':'1'}, other).status_code,303)
         self.assertEqual(self.post('/diplomacy', {'token':token,'action':'propose','target_id':'2','treaty_type':'trade_agreement'}).status_code,303)
         self.assertEqual(self.post('/diplomacy', {'token':peer,'action':'accept','treaty_id':'1'}, other).status_code,303)
         with closing(connect_database(self.path)) as c:
-            self.assertEqual(c.execute('SELECT credits FROM settlement_resources WHERE settlement_id=1').fetchone()[0],502)
-            self.assertEqual(c.execute('SELECT remaining_quantity FROM market_listings').fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT credits FROM settlement_resources WHERE settlement_id=1').fetchone()[0],507)
+            self.assertEqual(c.execute('SELECT credits FROM settlement_resources WHERE settlement_id=2').fetchone()[0],494)
+            self.assertEqual(c.execute("SELECT quantity FROM market_pool_stock WHERE resource='metal'").fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT count(*) FROM market_pool_trades').fetchone()[0],2)
+            self.assertEqual(c.execute("SELECT sum(amount) FROM credit_transactions WHERE transfer_ref LIKE 'market-pool:%'").fetchone()[0],0)
             self.assertEqual(c.execute('SELECT status FROM treaties').fetchone()[0],'active')
 
     def test_late_registered_account_can_enroll_then_play(self):
