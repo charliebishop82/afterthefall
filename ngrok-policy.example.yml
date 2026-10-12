@@ -1,0 +1,8 @@
+# Copy to ngrok-policy.yml and replace this password before starting a tunnel.
+# Keep the edited file private. This gate is separate from individual game logins.
+on_http_request:
+  - actions:
+      - type: basic-auth
+        config:
+          credentials:
+            - "tester:REPLACE_WITH_A_LONG_UNIQUE_PLAYTEST_PASSWORD"

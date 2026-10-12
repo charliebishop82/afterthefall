@@ -1,0 +1,164 @@
+"""Run enabled economy bots through the local player server; Ctrl+C stops runner."""
+import argparse
+import sqlite3
+from contextlib import closing
+import json
+import hashlib
+import uuid
+from pathlib import Path
+import time
+from urllib.error import HTTPError,URLError
+from urllib.parse import urlencode,urlsplit
+from urllib.request import Request,HTTPRedirectHandler,build_opener
+
+from database.create_database import connect_database
+from game import accounts,bots,bot_runtime
+from game.bot_policy import choose,POLICY_VERSION
+from game.operator_views import snapshot
+from game.settlement import account_scope,read_state
+
+
+def game_origin(value):
+    parts=urlsplit(value)
+    if parts.scheme!='http' or parts.hostname not in ('127.0.0.1','localhost') or parts.username or parts.password or parts.path not in ('','/') or parts.query or parts.fragment:
+        raise ValueError('Use a local player origin such as http://127.0.0.1:8767.')
+    return value.rstrip('/')
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+
+
+def request(origin,route,cookie,form=None):
+    data=urlencode(form,doseq=True).encode() if form is not None else None
+    req=Request(origin+route,data=data,headers={'Cookie':'playtest_session='+cookie})
+    try:
+        with build_opener(NoRedirect).open(req,timeout=30) as response:
+            return response.status,response.read(2_000_000),response.headers.get('X-Request-ID')
+    except HTTPError as error:
+        with error:return error.code,error.read(4096),error.headers.get('X-Request-ID')
+
+
+def observations(state,rates=None):
+    if not state:return {'settlement_ready':False}
+    from game.economy import storage
+    return dict(settlement_ready=True,clock=state['settlement']['simulation_processed_at'],
+        season_status=state['season']['status'],settlement_status=state['settlement']['status'],
+        resources={k:v for k,v in state['resources'].items() if k in ('food','water','scrap','metal','electronics','credits')},
+        reserved=state.get('reserved',{}),storage=storage(state),rates=rates,
+        citizens=[{k:c.get(k) for k in ('citizen_id','level','current_hp','effective_morale','assignment','building_id','job_id','away')} for c in state['citizens']],
+        buildings=[{k:b.get(k) for k in ('building_id','building_type','level','status','current_hp','origin_x','origin_y','rotation')} for b in state['buildings']],
+        units=[{k:u.get(k) for k in ('unit_id','unit_type','status','current_hp','home_building_id')} for u in state.get('units',[])],
+        inventory=state.get('inventory',[]),
+        expeditions=[{k:r.get(k) for k in ('expedition_id','status','started_at','gather_until','returns_at','food','water','food_rate','water_rate','yields','delivered','discarded')} for r in state.get('expeditions',[])],
+        munition_reservations=state.get('munition_reservations',[]),
+        jobs=[{k:j.get(k) for k in ('job_id','job_type','status','target_building_id','target_derelict_id','work_completed','work_required','pause_reason')} for j in state['jobs']],
+        sites=[{k:d.get(k) for k in ('settlement_derelict_id','derelict_type','status','recovered_loot')} for d in state['derelicts']])
+        # Private loot rolls/nonces, cookies, passwords and CSRF tokens are excluded.
+
+
+def step(path,origin,bot):
+    now=int(time.time());aid=bot['account_id']
+    attempt=uuid.uuid4().hex
+    context=dict(attempt=attempt,step=bot['steps'],seed=bot['seed']+bot['steps'],
+                 personality=bot.get('personality','balanced'),policy_version=POLICY_VERSION)
+    bot_runtime.trace(path,aid,'step_started',context)
+    decision=dict(route=None,reason='Waiting for settlement launch or resume.',form={})
+    with snapshot(path) as c,account_scope(aid):state=read_state(c)
+    if not state:
+        bot_runtime.trace(path,aid,'waiting_for_settlement',context)
+        bot_runtime.record(path,aid,now,decision);return decision['reason']
+    cookie,session=accounts.new_session(path,aid,now)
+    try:
+        status,body,request_id=request(origin,'/api/resources',cookie)
+        if status!=200:
+            bot_runtime.trace(path,aid,'refresh_rejected',dict(context,status=status,request_id=request_id,response=body.decode('utf-8',errors='replace')))
+            bot_runtime.record(path,aid,now,dict(route=None,reason='Could not refresh player snapshot.',form={}),status,request_id,'Refresh rejected');return 'Refresh rejected'
+        values=json.loads(body)
+        with snapshot(path) as c,account_scope(aid):state=read_state(c)
+        if any(values.get(key)!=state[table][field] for key,table,field in
+               [('account_id','settlement','account_id'),('settlement_id','settlement','settlement_id'),('season_id','season','season_id'),('map_seed','season','map_seed')]):
+            raise ValueError('Player server does not match the selected bot save.')
+        bot_runtime.trace(path,aid,'observed',dict(context,observation=observations(state,values['rates']),public_targets=values.get('targets',[]),market=values.get('market')))
+        decision=choose(state,values['rates'],bot['seed']+bot['steps'],bot.get('personality','balanced'),values.get('targets',[]),values.get('market'))
+        bot_runtime.trace(path,aid,'decided',dict(context,decision=decision))
+        # Pause may have been requested while snapshot refresh was in flight.
+        with closing(connect_database(path)) as c:
+            running=c.execute('SELECT state FROM bot_controllers WHERE account_id=?',(aid,)).fetchone()[0]=='running'
+        if not running:decision=dict(route=None,reason='Controller paused before action.',form={})
+        if decision['route']:
+            bot_runtime.trace(path,aid,'action_started',dict(context,decision=decision))
+            status,body,request_id=request(origin,decision['route'],cookie,dict(token=session['csrf'],**decision['form']))
+            error=body.decode('utf-8',errors='replace')[:500] if status>=400 else None
+            # Redirects are not followed: successful player actions normally return 303.
+            with snapshot(path) as c,account_scope(aid):after=read_state(c)
+            bot_runtime.trace(path,aid,'action_rejected' if status>=400 else 'action_completed',
+                       dict(context,decision=decision,status=status,request_id=request_id,response_error=error,after=observations(after)))
+            bot_runtime.record(path,aid,now,decision,status,request_id,error)
+        else:
+            bot_runtime.trace(path,aid,'wait',dict(context,decision=decision))
+            bot_runtime.record(path,aid,now,decision)
+        return decision['reason']
+    except (ValueError,KeyError,URLError,OSError,sqlite3.Error) as error:
+        bot_runtime.trace(path,aid,'controller_error',dict(context,decision=decision,error_type=type(error).__name__,error=str(error)[:300],
+                                                  outcome='Unknown if transport failed after sending; inspect request/game logs before assuming rejection.'))
+        bot_runtime.record(path,aid,now,decision,error=type(error).__name__+': '+str(error)[:300])
+        return 'Controller error: '+type(error).__name__
+    finally:
+        cleanup_session(path,aid,cookie)
+
+
+def cleanup_session(path,aid,cookie):
+    try:
+        with closing(connect_database(path)) as c,c:
+            c.execute('DELETE FROM auth_sessions WHERE token_hash=?',(hashlib.sha256(cookie.encode()).hexdigest(),))
+    except sqlite3.Error as error:
+        bot_runtime.fallback(path,aid,'session_cleanup_deferred',dict(error_type=type(error).__name__,
+            database_locked=bot_runtime.locked(error),outcome='Session expires normally; no credentials logged.'))
+
+
+def run_iteration(path,origin):
+    # Claim once, attempt once. A sent action is never automatically replayed.
+    bot=bots.claim(path,int(time.time()))
+    if not bot:return False
+    try:result=step(path,origin,bot)
+    except Exception as error:
+        contention=bot_runtime.locked(error)
+        bot_runtime.trace(path,bot['account_id'],'unexpected_error',dict(error_type=type(error).__name__,
+            step=bot['steps'],database_locked=contention,
+            outcome='No replay; inspect request logs if a POST may already have completed.'))
+        bot_runtime.record(path,bot['account_id'],int(time.time()),
+            dict(route=None,reason='Controller step interrupted; no automatic replay.',form={}),error=type(error).__name__)
+        result='Database busy; step deferred.' if contention else 'Unexpected controller failure: '+type(error).__name__
+    print(f"Bot #{bot['account_id']}: {result}",flush=True)
+    return True
+
+
+def main(argv=None):
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--database',type=Path,required=True)
+    parser.add_argument('--game-url',default='http://127.0.0.1:8767')
+    args=parser.parse_args(argv)
+    if not args.database.is_file():parser.error('Choose an existing playtest save.')
+    try:origin=game_origin(args.game_url)
+    except ValueError as error:parser.error(str(error))
+    ready=False
+    print('Bot runner ready. Only enabled controllers act. Database locks are deferred; Ctrl+C stops.',flush=True)
+    print(f'Fallback audit log: {bot_runtime.LOG_PATH}',flush=True)
+    try:
+        while True:
+            try:
+                if not ready:
+                    bots.prepare(args.database);ready=True
+                if not run_iteration(args.database,origin):time.sleep(2)
+            except sqlite3.Error as error:
+                bot_runtime.fallback(args.database,None,'runner_database_error',dict(error_type=type(error).__name__,database_locked=bot_runtime.locked(error)))
+                if not bot_runtime.locked(error):
+                    print('Database error; inspect the fallback log before restarting.',flush=True)
+                    return 1
+                print('Database busy; waiting 3 seconds before checking again.',flush=True)
+                time.sleep(3)
+    except KeyboardInterrupt:print('\nBot runner stopped; game servers remain running.',flush=True)
+
+
+if __name__=='__main__':raise SystemExit(main())

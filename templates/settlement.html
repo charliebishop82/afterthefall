@@ -1,0 +1,32 @@
+<section class="heading"><div><p class="eyebrow">YOUR FOOTHOLD IN THE WASTELAND</p><h1>$name</h1><p>$population citizens. One place to call home.</p></div><a class="secondary" href="#citizens">View citizens <span aria-hidden="true">↘</span></a></section>
+<section class="resources" aria-label="Stored resources">$supplies</section>
+<section class="clock-controls" data-status="$clock_status" data-revision="$revision">
+  <div><strong id="clock-label">$clock_label</strong><p>While running, supplies change even with the browser closed. Pause time to freeze your settlement.</p><small id="connection-status" role="status">Supplies refresh every five seconds.</small></div>
+  <form method="post" action="/clock"><input type="hidden" name="token" value="$token"><input type="hidden" name="action" value="$clock_action"><button type="submit" $disabled>$clock_action_label</button></form>
+</section>
+$alerts
+<section class="production-panel" aria-label="Production and consumption">
+  <div class="panel-heading"><div><p class="eyebrow">KEEP THE SETTLEMENT SUPPLIED</p><h2>Production &amp; consumption</h2></div><span>UNITS PER HOUR</span></div>
+  <div class="table-scroll"><table><caption class="sr-only">Resource rates when time is running</caption><thead><tr><th scope="col">Resource</th><th scope="col">All production</th><th scope="col">Consumption / inputs</th><th scope="col">Net change</th><th scope="col">Supply remaining</th></tr></thead><tbody>$balance_rows</tbody></table></div>
+  <div class="staffing"><form method="post" action="/administrator"><input type="hidden" name="token" value="$token"><div><label for="administrator">Town Hall Administrator</label><select id="administrator" name="citizen_id" $staff_disabled>$options</select></div><button type="submit" $staff_disabled>Assign Administrator</button></form><p>The Administrator produces Food and Water. Total Food storage: $total_food_storage. Food buildings add production when staffed and supplied with utilities.</p></div>
+</section>
+<div class="settlement-layout">
+  <section class="map-panel"><div class="panel-heading"><h2>Settlement map</h2><span>40 × 40 TILES · NORTH ↑</span></div><div class="map-scroll" tabindex="0" aria-label="Scrollable settlement map">$map</div><div class="map-legend"><span><i></i>Town Hall · Green: Food · Gold: work site</span><span>Dashed line: utilities. Outline: placement preview. Person + number: assigned citizens. Green percentage: build/upgrade/repair. Amber pickaxe &amp; shrinking bar: scavenging remaining.</span></div><p class="map-help">Click empty land to choose a site, or enter coordinates below. Click a building to manage it. Workers require at least 75% utility coverage.</p></section>
+  <aside class="details" id="town-hall" tabindex="-1"><p class="eyebrow">SETTLEMENT ANCHOR</p><div class="hall-icon" aria-hidden="true">▥</div><h2>Town Hall</h2><span class="tag">LEVEL $hall_level</span><p>Your first shelter and the heart of your settlement.</p><dl><div><dt>Condition</dt><dd>$hp / $max_hp HP</dd></div><div><dt>Housing</dt><dd>$population / $housing citizens</dd></div><div><dt>Food storage</dt><dd>$food_storage units</dd></div><div><dt>Water storage</dt><dd>$water_storage units</dd></div><div><dt>Material storage</dt><dd>$materials / $material_storage</dd></div></dl><p class="small-note">Scrap, Metal, and Electronics share material storage. At full health: $electricity Electricity capacity, $oxygen Oxygen capacity, $utility_radius-tile radius.</p>$hall_controls<div class="saved-note"><strong>Settlement established</strong><span>$created</span><p>Closing this page keeps your settlement saved. Return to the same address while the app is running.</p></div></aside>
+</div>
+$placement
+$food_cards
+$housing_summary
+<section class="citizens-panel" id="citizens"><div class="panel-heading"><div><p class="eyebrow">THE PEOPLE WHO MADE IT</p><h2>Citizens</h2></div><span>$population RESIDENTS</span></div><div class="table-scroll"><table><caption class="sr-only">Saved citizen roster</caption><thead><tr><th scope="col">Name</th><th scope="col">Level</th><th scope="col">Health</th><th scope="col">Sex</th><th scope="col">Assignment</th><th scope="col">Housing</th><th scope="col">Morale</th></tr></thead><tbody>$citizens</tbody></table></div></section>
+<script src="/static/live-refresh.js" defer></script>
+<script src="/static/resources.js" defer></script>
+<script src="/static/placement.js" defer></script>
+<script src="/static/buildings.js" defer></script>
+<script src="/static/player-ui.js" defer></script>
+<script src="/static/map-zoom.js" defer></script>
+<script src="/static/map-inspector.js" defer></script>
+<script src="/static/map-filters.js" defer></script>
+
+<script src="/static/gameplay-tips.js" defer></script>
+
+<script src="/static/map-build.js" defer></script>

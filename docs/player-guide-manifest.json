@@ -1,0 +1,100 @@
+{
+  "edition": "2026-10-11",
+  "profile": "prototype_v13 + expansion_v1",
+  "sections": [
+    {
+      "id": "start",
+      "title": "Start here"
+    },
+    {
+      "id": "opening",
+      "title": "Your first playable opening"
+    },
+    {
+      "id": "resources",
+      "title": "Resources and the production chain"
+    },
+    {
+      "id": "map",
+      "title": "Map placement and utilities"
+    },
+    {
+      "id": "build",
+      "title": "Construction and upgrades"
+    },
+    {
+      "id": "storage",
+      "title": "Storage and protecting your stock"
+    },
+    {
+      "id": "people",
+      "title": "Citizens housing health and morale"
+    },
+    {
+      "id": "rations",
+      "title": "Rations and shortage recovery"
+    },
+    {
+      "id": "scavenge",
+      "title": "Scavenging and support buildings"
+    },
+    {
+      "id": "military",
+      "title": "Military manufacturing and hardware"
+    },
+    {
+      "id": "combat",
+      "title": "Combat from declaration to return"
+    },
+    {
+      "id": "recovery",
+      "title": "Damage repairs and rebuilding"
+    },
+    {
+      "id": "trade",
+      "title": "Trade market and diplomacy"
+    },
+    {
+      "id": "bank",
+      "title": "Loans investments and Bank risk"
+    },
+    {
+      "id": "interface",
+      "title": "Messages Advisor scoring and account tools"
+    },
+    {
+      "id": "calendar",
+      "title": "Daily timing and current season boundaries"
+    },
+    {
+      "id": "trouble",
+      "title": "Troubleshooting and a daily checklist"
+    },
+    {
+      "id": "catalogue",
+      "title": "Complete building and upgrade reference"
+    },
+    {
+      "id": "equipment",
+      "title": "Complete hardware reference"
+    }
+  ],
+  "building_types": 42,
+  "building_levels": 108,
+  "hardware_types": 6,
+  "diagrams": [
+    "loop",
+    "materials",
+    "utility",
+    "build",
+    "shortage",
+    "factory",
+    "combat",
+    "debt"
+  ],
+  "config_hashes": {
+    "prototype_v13.json": "5634df8f3be010c0fc4101e882a06029c0913ca3a7dd8d4f2e690703e123c4bf",
+    "combat_v1.json": "dd539f40226a6123e705c85661a0f5c7d97ca4b1c9195ae4ce355019e0b23af5",
+    "expansion_v1.json": "1a14d40657a360bf983d6e463daf669d1997b37a2cf51817ff69d19ca2d7bbb5"
+  }
+}

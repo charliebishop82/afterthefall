@@ -1,0 +1,51 @@
+/* Resource controls added in prototype increment 2. */
+.clock-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0;
+}
+.clock-controls p, .staffing p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.clock-controls small { color: var(--muted); font-size: 10px; }
+.clock-controls form { margin: 0; min-width: 135px; }
+.clock-controls button { margin: 0; }
+.production-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+.staffing { padding: 22px 24px; border-top: 1px solid var(--line); }
+.staffing form { display: flex; align-items: flex-end; gap: 15px; margin: 0 0 12px; }
+.staffing form > div { flex: 1; }
+.staffing button { width: auto; margin: 0; min-height: 48px; }
+select {
+  width: 100%;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid #555f49;
+  border-radius: 3px;
+  padding: 13px;
+  font: inherit;
+}
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.error { margin-bottom: 20px; }
+@media (max-width: 600px) {
+  .clock-controls { align-items: flex-start; gap: 12px; }
+  .clock-controls form { min-width: 110px; }
+  .clock-controls button { padding: 12px; }
+  .staffing { padding: 18px; }
+  .staffing form { flex-direction: column; align-items: stretch; }
+}
+#military input[type="checkbox"], #conflict input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+  margin: 0 .5rem 0 0;
+}
+

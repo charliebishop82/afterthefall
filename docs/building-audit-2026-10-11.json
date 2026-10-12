@@ -1,0 +1,2417 @@
+{
+  "buildings": 42,
+  "levels": 108,
+  "upgrades": 66,
+  "errors": [],
+  "storage_paths": [
+    {
+      "target_town_hall": 2,
+      "cost": 380.0,
+      "capacity": 500.0,
+      "path": "Town Hall 1 + Scrap Yard"
+    },
+    {
+      "target_town_hall": 3,
+      "cost": 725.0,
+      "capacity": 825.0,
+      "path": "Town Hall 2 + Warehouse 1"
+    }
+  ],
+  "renewable_scrap": {
+    "building": "salvage_depot",
+    "output_per_worker_hour": [
+      8,
+      12,
+      18
+    ],
+    "source": "User-approved renewable Scrap, 2026-10-11. Prototype rate per effective worker; external salvage expeditions, not consumption of finite map ruins. Original workbook unchanged."
+  },
+  "all_level_1_costs": {
+    "scrap": 3155.0,
+    "metal": 2225.0,
+    "electronics": 261.0
+  },
+  "all_sequential_level_costs": {
+    "scrap": 9280.0,
+    "metal": 9950.0,
+    "electronics": 1511.0
+  },
+  "levels_detail": [
+    {
+      "building": "town_hall",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 0.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 0.0,
+      "workers_min": 1,
+      "workers_max": 1.0,
+      "output_per_effective_worker_hour": {
+        "food": 2.0,
+        "water": 2.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "town_hall",
+      "level": 2,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 250.0,
+        "metal": 120.0,
+        "electronics": 10.0
+      },
+      "total_cost": 380.0,
+      "workers_min": 1,
+      "workers_max": 1.0,
+      "output_per_effective_worker_hour": {
+        "food": 3.0,
+        "water": 3.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "town_hall",
+      "level": 3,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 450.0,
+        "metal": 250.0,
+        "electronics": 25.0
+      },
+      "total_cost": 725.0,
+      "workers_min": 1,
+      "workers_max": 1.0,
+      "output_per_effective_worker_hour": {
+        "food": 4.0,
+        "water": 4.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "garden",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 35.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 35.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 6.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 1.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "greenhouse",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 35.0,
+        "electronics": 0.0
+      },
+      "total_cost": 115.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 10.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 2.0
+    },
+    {
+      "building": "greenhouse",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 55.0,
+        "electronics": 5.0
+      },
+      "total_cost": 130.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 17.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "greenhouse",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 80.0,
+        "electronics": 10.0
+      },
+      "total_cost": 180.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 26.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "hydroponics",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 100.0,
+        "electronics": 15.0
+      },
+      "total_cost": 235.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 18.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "hydroponics",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 140.0,
+        "electronics": 25.0
+      },
+      "total_cost": 265.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 30.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "hydroponics",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 190.0,
+        "electronics": 40.0
+      },
+      "total_cost": 350.0,
+      "workers_min": 1,
+      "workers_max": 6.0,
+      "output_per_effective_worker_hour": {
+        "food": 45.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 6.0,
+      "electricity": 9.0
+    },
+    {
+      "building": "rain_collector",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 25.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 25.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 3.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "well_pump",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 65.0,
+        "metal": 30.0,
+        "electronics": 0.0
+      },
+      "total_cost": 95.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 9.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 2.0
+    },
+    {
+      "building": "well_pump",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 60.0,
+        "metal": 45.0,
+        "electronics": 5.0
+      },
+      "total_cost": 110.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 15.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "well_pump",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 75.0,
+        "metal": 70.0,
+        "electronics": 10.0
+      },
+      "total_cost": 155.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 23.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "purification_plant",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 130.0,
+        "metal": 110.0,
+        "electronics": 15.0
+      },
+      "total_cost": 255.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 17.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "purification_plant",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 110.0,
+        "metal": 150.0,
+        "electronics": 25.0
+      },
+      "total_cost": 285.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 28.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "purification_plant",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 130.0,
+        "metal": 210.0,
+        "electronics": 40.0
+      },
+      "total_cost": 380.0,
+      "workers_min": 1,
+      "workers_max": 6.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 42.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 6.0,
+      "electricity": 8.0
+    },
+    {
+      "building": "oxygen_garden",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 40.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 40.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "oxygen_generator",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 60.0,
+        "metal": 30.0,
+        "electronics": 5.0
+      },
+      "total_cost": 95.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 2.0
+    },
+    {
+      "building": "oxygen_generator",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 55.0,
+        "metal": 45.0,
+        "electronics": 8.0
+      },
+      "total_cost": 108.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "oxygen_generator",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 65.0,
+        "electronics": 12.0
+      },
+      "total_cost": 147.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "industrial_oxygen",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 110.0,
+        "electronics": 15.0
+      },
+      "total_cost": 245.0,
+      "workers_min": 2,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 5.0
+    },
+    {
+      "building": "industrial_oxygen",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 150.0,
+        "electronics": 25.0
+      },
+      "total_cost": 275.0,
+      "workers_min": 2,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 7.0
+    },
+    {
+      "building": "industrial_oxygen",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 125.0,
+        "metal": 210.0,
+        "electronics": 40.0
+      },
+      "total_cost": 375.0,
+      "workers_min": 2,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 10.0
+    },
+    {
+      "building": "solar_array",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 50.0,
+        "metal": 25.0,
+        "electronics": 5.0
+      },
+      "total_cost": 80.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "wind_turbine",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 50.0,
+        "electronics": 5.0
+      },
+      "total_cost": 125.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "wind_turbine",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 65.0,
+        "metal": 70.0,
+        "electronics": 8.0
+      },
+      "total_cost": 143.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "wind_turbine",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 100.0,
+        "electronics": 12.0
+      },
+      "total_cost": 192.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "generator_plant",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 130.0,
+        "metal": 120.0,
+        "electronics": 15.0
+      },
+      "total_cost": 265.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "generator_plant",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 110.0,
+        "metal": 170.0,
+        "electronics": 25.0
+      },
+      "total_cost": 305.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "generator_plant",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 140.0,
+        "metal": 230.0,
+        "electronics": 40.0
+      },
+      "total_cost": 410.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 5.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "root_cellar",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 55.0,
+        "metal": 15.0,
+        "electronics": 0.0
+      },
+      "total_cost": 70.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "cold_storage",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 60.0,
+        "electronics": 5.0
+      },
+      "total_cost": 145.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "cold_storage",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 85.0,
+        "electronics": 10.0
+      },
+      "total_cost": 165.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "cold_storage",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 120.0,
+        "electronics": 15.0
+      },
+      "total_cost": 225.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "water_tank",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 45.0,
+        "metal": 25.0,
+        "electronics": 0.0
+      },
+      "total_cost": 70.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "water_tank",
+      "level": 2,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 40.0,
+        "metal": 40.0,
+        "electronics": 0.0
+      },
+      "total_cost": 80.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "water_tank",
+      "level": 3,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 50.0,
+        "metal": 60.0,
+        "electronics": 5.0
+      },
+      "total_cost": 115.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "scrap_yard",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 60.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 60.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "warehouse",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 55.0,
+        "electronics": 0.0
+      },
+      "total_cost": 135.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "warehouse",
+      "level": 2,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 80.0,
+        "electronics": 5.0
+      },
+      "total_cost": 155.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "warehouse",
+      "level": 3,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 110.0,
+        "electronics": 10.0
+      },
+      "total_cost": 210.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "recycler",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 55.0,
+        "electronics": 5.0
+      },
+      "total_cost": 140.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 7.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "recycler",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 80.0,
+        "electronics": 8.0
+      },
+      "total_cost": 158.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 12.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "recycler",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 110.0,
+        "electronics": 12.0
+      },
+      "total_cost": 212.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 18.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "electronics_fabricator",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 90.0,
+        "electronics": 15.0
+      },
+      "total_cost": 205.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 2.0
+      },
+      "oxygen": 2.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "electronics_fabricator",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 85.0,
+        "metal": 125.0,
+        "electronics": 25.0
+      },
+      "total_cost": 235.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 3.5
+      },
+      "oxygen": 3.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "electronics_fabricator",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 105.0,
+        "metal": 170.0,
+        "electronics": 40.0
+      },
+      "total_cost": 315.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 5.0
+      },
+      "oxygen": 4.0,
+      "electricity": 8.0
+    },
+    {
+      "building": "pup_tent",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 15.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 15.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 1.0,
+      "electricity": 0
+    },
+    {
+      "building": "upgraded_tent",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 25.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 25.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 1.0,
+      "electricity": 0
+    },
+    {
+      "building": "upgraded_tent",
+      "level": 2,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 20.0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "total_cost": 20.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 2.0,
+      "electricity": 0
+    },
+    {
+      "building": "shack",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 50.0,
+        "metal": 10.0,
+        "electronics": 0.0
+      },
+      "total_cost": 60.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 2.0,
+      "electricity": 0
+    },
+    {
+      "building": "house",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 25.0,
+        "electronics": 0.0
+      },
+      "total_cost": 95.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 2.0,
+      "electricity": 0
+    },
+    {
+      "building": "house",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 60.0,
+        "metal": 40.0,
+        "electronics": 0.0
+      },
+      "total_cost": 100.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 4.0,
+      "electricity": 0
+    },
+    {
+      "building": "apartment_block",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 80.0,
+        "electronics": 5.0
+      },
+      "total_cost": 205.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 3.0,
+      "electricity": 0
+    },
+    {
+      "building": "apartment_block",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 100.0,
+        "electronics": 10.0
+      },
+      "total_cost": 210.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 6.0,
+      "electricity": 0
+    },
+    {
+      "building": "apartment_block",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 140.0,
+        "electronics": 20.0
+      },
+      "total_cost": 280.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0,
+        "water": 0,
+        "scrap": 0,
+        "metal": 0,
+        "electronics": 0
+      },
+      "oxygen": 12.0,
+      "electricity": 0
+    },
+    {
+      "building": "engineering_workshop",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 60.0,
+        "electronics": 5.0
+      },
+      "total_cost": 145.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "engineering_workshop",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 85.0,
+        "electronics": 10.0
+      },
+      "total_cost": 165.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "engineering_workshop",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 120.0,
+        "electronics": 15.0
+      },
+      "total_cost": 225.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "drone_factory",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 140.0,
+        "metal": 140.0,
+        "electronics": 25.0
+      },
+      "total_cost": 305.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "drone_factory",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 190.0,
+        "electronics": 40.0
+      },
+      "total_cost": 350.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 8.0
+    },
+    {
+      "building": "drone_factory",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 150.0,
+        "metal": 260.0,
+        "electronics": 65.0
+      },
+      "total_cost": 475.0,
+      "workers_min": 1,
+      "workers_max": 6.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 6.0,
+      "electricity": 12.0
+    },
+    {
+      "building": "offensive_hangar",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 80.0,
+        "electronics": 10.0
+      },
+      "total_cost": 180.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "offensive_hangar",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 115.0,
+        "electronics": 18.0
+      },
+      "total_cost": 213.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "offensive_hangar",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 160.0,
+        "electronics": 30.0
+      },
+      "total_cost": 290.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "air_defense_bay",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 70.0,
+        "electronics": 10.0
+      },
+      "total_cost": 160.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "air_defense_bay",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 100.0,
+        "electronics": 15.0
+      },
+      "total_cost": 185.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "air_defense_bay",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 140.0,
+        "electronics": 25.0
+      },
+      "total_cost": 255.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "ground_defense_bay",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 85.0,
+        "metal": 75.0,
+        "electronics": 8.0
+      },
+      "total_cost": 168.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "ground_defense_bay",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 75.0,
+        "metal": 105.0,
+        "electronics": 15.0
+      },
+      "total_cost": 195.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "ground_defense_bay",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 95.0,
+        "metal": 145.0,
+        "electronics": 25.0
+      },
+      "total_cost": 265.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "munitions_factory",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 150.0,
+        "metal": 150.0,
+        "electronics": 25.0
+      },
+      "total_cost": 325.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "munitions_factory",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 125.0,
+        "metal": 200.0,
+        "electronics": 40.0
+      },
+      "total_cost": 365.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 8.0
+    },
+    {
+      "building": "munitions_factory",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 160.0,
+        "metal": 275.0,
+        "electronics": 65.0
+      },
+      "total_cost": 500.0,
+      "workers_min": 1,
+      "workers_max": 6.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 6.0,
+      "electricity": 12.0
+    },
+    {
+      "building": "missile_silo",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 100.0,
+        "electronics": 15.0
+      },
+      "total_cost": 205.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "missile_silo",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 140.0,
+        "electronics": 25.0
+      },
+      "total_cost": 245.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "missile_silo",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 190.0,
+        "electronics": 40.0
+      },
+      "total_cost": 330.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "interceptor_battery",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 90.0,
+        "electronics": 15.0
+      },
+      "total_cost": 195.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "interceptor_battery",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 130.0,
+        "electronics": 25.0
+      },
+      "total_cost": 235.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "interceptor_battery",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 180.0,
+        "electronics": 35.0
+      },
+      "total_cost": 315.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "clinic",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 35.0,
+        "electronics": 0.0
+      },
+      "total_cost": 105.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "clinic",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 60.0,
+        "metal": 55.0,
+        "electronics": 5.0
+      },
+      "total_cost": 120.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "clinic",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 80.0,
+        "electronics": 10.0
+      },
+      "total_cost": 170.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "medical_center",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 120.0,
+        "metal": 100.0,
+        "electronics": 15.0
+      },
+      "total_cost": 235.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "medical_center",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 145.0,
+        "electronics": 25.0
+      },
+      "total_cost": 270.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 6.0
+    },
+    {
+      "building": "medical_center",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 125.0,
+        "metal": 200.0,
+        "electronics": 40.0
+      },
+      "total_cost": 365.0,
+      "workers_min": 1,
+      "workers_max": 6.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 6.0,
+      "electricity": 8.0
+    },
+    {
+      "building": "salvage_depot",
+      "level": 1,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 55.0,
+        "metal": 20.0,
+        "electronics": 0.0
+      },
+      "total_cost": 75.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 8,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "salvage_depot",
+      "level": 2,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 50.0,
+        "metal": 35.0,
+        "electronics": 0.0
+      },
+      "total_cost": 85.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 12,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "salvage_depot",
+      "level": 3,
+      "town_hall_unlock": 1,
+      "materials": {
+        "scrap": 65.0,
+        "metal": 50.0,
+        "electronics": 5.0
+      },
+      "total_cost": 120.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 18,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "trading_post",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 35.0,
+        "electronics": 0.0
+      },
+      "total_cost": 105.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "trading_post",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 60.0,
+        "metal": 55.0,
+        "electronics": 5.0
+      },
+      "total_cost": 120.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "trading_post",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 80.0,
+        "electronics": 10.0
+      },
+      "total_cost": 170.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "community_center",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 75.0,
+        "metal": 40.0,
+        "electronics": 0.0
+      },
+      "total_cost": 115.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "community_center",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 65.0,
+        "metal": 60.0,
+        "electronics": 5.0
+      },
+      "total_cost": 130.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "community_center",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 85.0,
+        "metal": 90.0,
+        "electronics": 10.0
+      },
+      "total_cost": 185.0,
+      "workers_min": 1,
+      "workers_max": 4.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 4.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "guard_post",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 45.0,
+        "metal": 20.0,
+        "electronics": 0.0
+      },
+      "total_cost": 65.0,
+      "workers_min": 1,
+      "workers_max": 1.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 1.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "guard_post",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 40.0,
+        "metal": 35.0,
+        "electronics": 0.0
+      },
+      "total_cost": 75.0,
+      "workers_min": 1,
+      "workers_max": 2.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 2.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "guard_post",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 50.0,
+        "metal": 50.0,
+        "electronics": 5.0
+      },
+      "total_cost": 105.0,
+      "workers_min": 1,
+      "workers_max": 3.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 3.0,
+      "electricity": 0.0
+    },
+    {
+      "building": "automated_turret",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 55.0,
+        "metal": 40.0,
+        "electronics": 5.0
+      },
+      "total_cost": 100.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 2.0
+    },
+    {
+      "building": "automated_turret",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 50.0,
+        "metal": 60.0,
+        "electronics": 8.0
+      },
+      "total_cost": 118.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "automated_turret",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 65.0,
+        "metal": 85.0,
+        "electronics": 12.0
+      },
+      "total_cost": 162.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "anti_air_turret",
+      "level": 1,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 65.0,
+        "metal": 55.0,
+        "electronics": 8.0
+      },
+      "total_cost": 128.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "anti_air_turret",
+      "level": 2,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 55.0,
+        "metal": 80.0,
+        "electronics": 12.0
+      },
+      "total_cost": 147.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    },
+    {
+      "building": "anti_air_turret",
+      "level": 3,
+      "town_hall_unlock": 3,
+      "materials": {
+        "scrap": 70.0,
+        "metal": 110.0,
+        "electronics": 20.0
+      },
+      "total_cost": 200.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 5.0
+    },
+    {
+      "building": "vault",
+      "level": 1,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 90.0,
+        "metal": 90.0,
+        "electronics": 15.0
+      },
+      "total_cost": 195.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 2.0
+    },
+    {
+      "building": "vault",
+      "level": 2,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 80.0,
+        "metal": 130.0,
+        "electronics": 25.0
+      },
+      "total_cost": 235.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 3.0
+    },
+    {
+      "building": "vault",
+      "level": 3,
+      "town_hall_unlock": 2,
+      "materials": {
+        "scrap": 100.0,
+        "metal": 180.0,
+        "electronics": 40.0
+      },
+      "total_cost": 320.0,
+      "workers_min": 0,
+      "workers_max": 0.0,
+      "output_per_effective_worker_hour": {
+        "food": 0.0,
+        "water": 0.0,
+        "scrap": 0,
+        "metal": 0.0,
+        "electronics": 0.0
+      },
+      "oxygen": 0.0,
+      "electricity": 4.0
+    }
+  ]
+}

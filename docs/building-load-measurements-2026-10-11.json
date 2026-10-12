@@ -1,0 +1,26 @@
+[
+  {
+    "players": 5,
+    "five_second_refresh_trials": [
+      0.5797567999998137,
+      0.28315010000005714,
+      0.25176139999985025
+    ],
+    "median_refresh_seconds": 0.28315010000005714,
+    "one_hour_catchup_seconds": 5.742491199999677,
+    "one_hour_catchup_cpu_seconds": 5.34375,
+    "same_timestamp_equal_resource_packages": true
+  },
+  {
+    "players": 10,
+    "five_second_refresh_trials": [
+      0.5014299999998002,
+      0.6487403999999515,
+      0.4431155000002036
+    ],
+    "median_refresh_seconds": 0.5014299999998002,
+    "one_hour_catchup_seconds": 11.540732699999808,
+    "one_hour_catchup_cpu_seconds": 10.78125,
+    "same_timestamp_equal_resource_packages": true
+  }
+]

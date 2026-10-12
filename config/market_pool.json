@@ -1,0 +1,22 @@
+{
+  "food": {
+    "buy_price": 2,
+    "sell_price": 1
+  },
+  "water": {
+    "buy_price": 2,
+    "sell_price": 1
+  },
+  "scrap": {
+    "buy_price": 3,
+    "sell_price": 2
+  },
+  "metal": {
+    "buy_price": 6,
+    "sell_price": 4
+  },
+  "electronics": {
+    "buy_price": 15,
+    "sell_price": 10
+  }
+}

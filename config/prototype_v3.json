@@ -1,0 +1,309 @@
+{
+  "version": "prototype_v3",
+  "sources": {
+    "workbook": "Post_Apocalyptic_Game_V1_Building_Settings(1).xlsx",
+    "starting_values": "Season Start: starting_* and map_width/map_height",
+    "town_hall": "Buildings: town_hall, level 1",
+    "citizen_hp": "Citizen Economy: citizen_start_hp and citizen_hp_per_level",
+    "citizen_morale": "Morale: morale_start and morale_productivity_*",
+    "consumption": "Citizen Economy: food_full and water_full",
+    "productivity": "Citizen Economy: citizen_productivity_per_level",
+    "finalization_hours": "GDD v0.2, section 4",
+    "buildings": "Buildings rows town_hall, garden, greenhouse, hydroponics; incremental per-level costs and times per README",
+    "prototype_interpretations": "docs/food.md: production per worker, construction diminishing returns, Town Hall upgrade efficiency, tile-center utility coverage"
+  },
+  "map_width": 40,
+  "map_height": 40,
+  "season_days": 30,
+  "finalization_hours": 3,
+  "beginner_protection_hours": 24,
+  "starting_attacks": 3,
+  "starting_population": 6,
+  "citizen_hp": 100,
+  "citizen_morale": 60,
+  "resources": {
+    "food": 120,
+    "water": 120,
+    "scrap": 180,
+    "metal": 40,
+    "electronics": 10,
+    "credits": 500
+  },
+  "town_hall": {
+    "width": 3,
+    "height": 3,
+    "hp": 1000,
+    "housing": 10,
+    "food_storage": 150,
+    "water_storage": 150,
+    "material_storage": 250
+  },
+  "simulation": {
+    "food_per_citizen_per_hour": 1,
+    "water_per_citizen_per_hour": 1,
+    "town_hall_food_per_hour": 2,
+    "town_hall_water_per_hour": 2,
+    "hp_per_level": 8,
+    "productivity_per_level": 0.03,
+    "morale_bands": [
+      [
+        25,
+        0.7
+      ],
+      [
+        40,
+        0.85
+      ],
+      [
+        75,
+        1.0
+      ],
+      [
+        101,
+        1.1
+      ]
+    ]
+  },
+  "buildings": {
+    "town_hall": {
+      "name": "Town Hall",
+      "unlock": 1,
+      "footprint": [
+        3,
+        3
+      ],
+      "max_level": 3,
+      "levels": [
+        {
+          "workers": 1.0,
+          "minutes": 0.0,
+          "hp": 1000.0,
+          "scrap": 0.0,
+          "metal": 0.0,
+          "electronics": 0.0,
+          "food": 2.0,
+          "water": 2.0,
+          "food_storage": 150.0,
+          "water_storage": 150.0,
+          "material_storage": 250.0,
+          "housing": 10.0,
+          "radius": 4.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 6.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 8.0
+        },
+        {
+          "workers": 1.0,
+          "minutes": 120.0,
+          "hp": 1400.0,
+          "scrap": 250.0,
+          "metal": 120.0,
+          "electronics": 10.0,
+          "food": 3.0,
+          "water": 3.0,
+          "food_storage": 225.0,
+          "water_storage": 225.0,
+          "material_storage": 375.0,
+          "housing": 12.0,
+          "radius": 5.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 8.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 10.0
+        },
+        {
+          "workers": 1.0,
+          "minutes": 240.0,
+          "hp": 1900.0,
+          "scrap": 450.0,
+          "metal": 250.0,
+          "electronics": 25.0,
+          "food": 4.0,
+          "water": 4.0,
+          "food_storage": 325.0,
+          "water_storage": 325.0,
+          "material_storage": 550.0,
+          "housing": 15.0,
+          "radius": 6.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 10.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 12.0
+        }
+      ]
+    },
+    "garden": {
+      "name": "Garden",
+      "unlock": 1,
+      "footprint": [
+        2,
+        2
+      ],
+      "max_level": 1,
+      "levels": [
+        {
+          "workers": 2.0,
+          "minutes": 15.0,
+          "hp": 150.0,
+          "scrap": 35.0,
+          "metal": 0.0,
+          "electronics": 0.0,
+          "food": 6.0,
+          "water": 0.0,
+          "food_storage": 10.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 1.0,
+          "oxygen_output": 0.0
+        }
+      ]
+    },
+    "greenhouse": {
+      "name": "Greenhouse",
+      "unlock": 2,
+      "footprint": [
+        2,
+        3
+      ],
+      "max_level": 3,
+      "levels": [
+        {
+          "workers": 2.0,
+          "minutes": 40.0,
+          "hp": 350.0,
+          "scrap": 80.0,
+          "metal": 35.0,
+          "electronics": 0.0,
+          "food": 10.0,
+          "water": 0.0,
+          "food_storage": 15.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 2.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 2.0,
+          "oxygen_output": 0.0
+        },
+        {
+          "workers": 3.0,
+          "minutes": 60.0,
+          "hp": 500.0,
+          "scrap": 70.0,
+          "metal": 55.0,
+          "electronics": 5.0,
+          "food": 17.0,
+          "water": 0.0,
+          "food_storage": 25.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 3.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 3.0,
+          "oxygen_output": 0.0
+        },
+        {
+          "workers": 4.0,
+          "minutes": 90.0,
+          "hp": 700.0,
+          "scrap": 90.0,
+          "metal": 80.0,
+          "electronics": 10.0,
+          "food": 26.0,
+          "water": 0.0,
+          "food_storage": 40.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 4.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 4.0,
+          "oxygen_output": 0.0
+        }
+      ]
+    },
+    "hydroponics": {
+      "name": "Hydroponics Facility",
+      "unlock": 3,
+      "footprint": [
+        3,
+        3
+      ],
+      "max_level": 3,
+      "levels": [
+        {
+          "workers": 3.0,
+          "minutes": 90.0,
+          "hp": 700.0,
+          "scrap": 120.0,
+          "metal": 100.0,
+          "electronics": 15.0,
+          "food": 18.0,
+          "water": 0.0,
+          "food_storage": 20.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 4.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 3.0,
+          "oxygen_output": 0.0
+        },
+        {
+          "workers": 4.0,
+          "minutes": 120.0,
+          "hp": 950.0,
+          "scrap": 100.0,
+          "metal": 140.0,
+          "electronics": 25.0,
+          "food": 30.0,
+          "water": 0.0,
+          "food_storage": 35.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 6.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 4.0,
+          "oxygen_output": 0.0
+        },
+        {
+          "workers": 6.0,
+          "minutes": 180.0,
+          "hp": 1250.0,
+          "scrap": 120.0,
+          "metal": 190.0,
+          "electronics": 40.0,
+          "food": 45.0,
+          "water": 0.0,
+          "food_storage": 55.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 9.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 6.0,
+          "oxygen_output": 0.0
+        }
+      ]
+    }
+  },
+  "construction": {
+    "worker_exponent": 0.5,
+    "town_hall_upgrade_productivity": 0.5,
+    "coverage_fraction": 0.75,
+    "shutdown_condition": 0.25
+  }
+}

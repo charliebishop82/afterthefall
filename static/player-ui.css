@@ -1,0 +1,204 @@
+.player-menu { display:flex; flex-wrap:wrap; gap:.5rem; padding:1rem 0; border-bottom:1px solid var(--line); margin-bottom:1.5rem; }
+.player-menu a { padding:.65rem 1rem; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+.player-menu a[aria-current] { background:var(--accent); color:var(--bg); font-weight:700; }
+.player-screen[hidden] { display:none !important; }
+.player-info { margin:.75rem 0; padding:.65rem .9rem; border:1px solid var(--line); border-radius:8px; }
+.player-info summary { cursor:pointer; color:var(--accent); }
+.player-info > p { margin-bottom:0; }
+.player-screen .production-panel { border-radius:12px; }
+.placement-status { flex-basis:100%; color:var(--muted); }
+#placement-preview.invalid-site { stroke:#f58e83; fill:#f58e83; }
+.resources { gap:.6rem; }
+@media(max-width:700px) { .player-menu a { flex:1 1 42%; text-align:center; } .settlement-layout { display:block; } .resources { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+
+.map-staff { fill:#fff4d8; stroke:#182018; stroke-width:.11; paint-order:stroke fill; font-weight:700; }
+
+.map-controls { position:absolute; top:12px; right:12px; z-index:2; display:grid; grid-template-columns:repeat(5,32px); gap:3px; padding:4px; border:1px solid var(--line); border-radius:8px; background:rgba(23,27,23,.9); box-shadow:0 2px 8px #0005; }
+.map-scroll .map-controls button { display:inline-flex; align-items:center; justify-content:center; width:32px; min-width:0; height:32px; margin:0; padding:0; border:1px solid var(--line); border-radius:4px; background:var(--panel); color:var(--text); font-size:17px; line-height:1; }
+.map-scroll .map-controls button:hover { background:#394034; }
+.map-scroll .map-controls button[aria-pressed="true"] { background:var(--accent); color:var(--bg); }
+.map-controls button[aria-pressed="true"] { background:var(--accent); color:var(--bg); }
+.map-scroll svg { display:block; width:100%; min-width:0; height:clamp(300px,55vh,600px); }
+.map-scroll { overflow:hidden; position:relative; }
+.map-scroll[data-pan="true"] svg { cursor:grab; touch-action:none; }
+.map-scroll[data-pan="true"] svg a { cursor:grab; }
+.map-scroll[data-pan="true"] svg:active { cursor:grabbing; }
+.map-zoom-status { position:absolute; left:14px; bottom:14px; z-index:1; margin:0; padding:3px 7px; border-radius:4px; background:rgba(23,27,23,.85); color:var(--text); font-size:11px; pointer-events:none; }
+@media(pointer:coarse) { .map-controls { grid-template-columns:repeat(5,36px); } .map-scroll .map-controls button { width:36px; height:36px; } }
+
+.map-job { fill:#bcdfba; }
+.map-scavenging { cursor:help; }
+
+/* Keep the live supplies visible throughout the settlement page. */
+main > .resources {
+  position:sticky;
+  top:0;
+  z-index:20;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:0;
+  margin-bottom:1rem;
+  background:var(--panel);
+  box-shadow:0 4px 12px #0005;
+}
+main > .resources .resource { padding:8px 12px; border-bottom:0; }
+main > .resources .resource:nth-child(3) { border-right:1px solid var(--line); }
+main > .resources .resource strong { font-size:22px; line-height:1.3; }
+html { scroll-padding-top:110px; }
+@media(max-width:700px) {
+  main > .resources { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  main > .resources .resource { padding:5px 8px; }
+  main > .resources .resource:nth-child(3) { border-right:0; }
+  main > .resources .resource:nth-child(-n+3) { border-bottom:1px solid var(--line); }
+  main > .resources .resource strong { font-size:18px; }
+  main > .resources .resource small { display:none; }
+}
+
+.work-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.75rem; padding:1rem; }
+.work-card { border:1px solid var(--line); border-radius:8px; padding:1rem; background:var(--bg); }
+.work-card h4 { margin:0 0 .5rem; }
+.work-card p { margin:.5rem 0; }
+.work-card progress { width:100%; accent-color:#d5a553; }
+.work-card dt { color:var(--muted); font-size:.8rem; }
+.work-card dd { margin:0 0 .6rem; }
+.map-eta { fill:#e6dfc6; }
+.screen-intro { color:var(--muted); margin:.25rem 0 .75rem; }
+.section-shortcuts { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+.section-shortcuts a { padding:.25rem .6rem; border:1px solid var(--line); border-radius:20px; font-size:.8rem; }
+.food-card .player-info .building-controls { padding:0; }
+
+.resource { position:relative; }
+.resource-warning { position:absolute; right:7px; top:6px; color:#e9b65d; font-size:14px; }
+#resource-alert-list { list-style:none; margin:0; padding:1rem; display:grid; gap:.6rem; }
+#resource-alert-list li { padding:.75rem 1rem; border-left:3px solid #e9b65d; background:var(--bg); border-radius:5px; }
+#resource-alert-list li.attention-critical { border-color:#f58e83; }
+#resource-alert-list li.attention-notice { border-color:#a8c9a6; }
+#resource-alert-list strong { display:block; font-weight:500; }
+#resource-alert-list a { display:inline-block; margin-top:.35rem; color:var(--accent); text-decoration:underline; }
+#resource-alert-empty { padding:0 1rem 1rem; color:var(--muted); }
+
+/* Six supplies plus total/free residents, in the same frozen header. */
+main > .resources { grid-template-columns:repeat(8,minmax(0,1fr)); }
+@media(max-width:900px) {
+  main > .resources { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  main > .resources .resource { padding:5px 7px; }
+  main > .resources .resource small { display:none; }
+  main > .resources .resource strong { font-size:18px; }
+  main > .resources .resource:nth-child(3) { border-right:1px solid var(--line); }
+  main > .resources .resource:nth-child(-n+4) { border-bottom:1px solid var(--line); }
+  main > .resources .resource:nth-child(4n) { border-right:0; }
+}
+
+.food-card.unstaffed-building { border-color:#e9b65d; box-shadow:inset 3px 0 #e9b65d; }
+.staffing-warning { margin:.5rem 0; padding:.35rem .6rem; border-radius:4px; background:#e9b65d18; color:#e9b65d; font-size:.8rem; font-weight:600; }
+.staffing-warning[hidden] { display:none; }
+
+/* Compact menu content; map layout, toolbar and geometry are unchanged. */
+.player-screen > .production-panel { padding:14px 16px; margin-bottom:14px; }
+.player-screen > .production-panel > h2 { margin:0 0 10px; font-size:18px; }
+.player-screen > .production-panel > h3 { margin:12px 0 6px; font-size:15px; }
+.player-screen > .production-panel > p { margin:7px 0; }
+.player-screen > .production-panel > .panel-heading { padding:0 0 10px; }
+.player-screen > .production-panel .building-controls { padding:12px 0; }
+.player-screen > .production-panel form,
+.player-screen .food-card form {
+  display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; margin:10px 0;
+}
+.player-screen > .production-panel form > label,
+.player-screen .food-card form > label { flex:1 1 160px; min-width:0; margin:0; }
+.player-screen > .production-panel form > fieldset { flex-basis:100%; min-width:0; }
+.player-screen > .production-panel form > fieldset > label { display:inline-block; margin:4px 12px 4px 0; }
+.player-screen > .production-panel form > button,
+.player-screen .food-card form > button {
+  width:auto; max-width:100%; margin:0; padding:8px 12px;
+  display:inline-flex; justify-content:center; min-height:36px;
+}
+.player-screen form input:not([type="checkbox"]):not([type="hidden"]),
+.player-screen form select { padding:7px 9px; min-height:36px; }
+.player-screen .build-fields { flex-basis:100%; gap:8px; }
+.player-screen .player-info { margin:7px 0; padding:7px 10px; }
+.player-screen .player-info summary { font-size:12px; }
+.player-screen .food-cards { gap:10px; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); }
+.player-screen .food-card h3 { margin:12px 14px 8px; font-size:15px; }
+.player-screen .food-card > p { margin:7px 14px; }
+.player-screen .food-card > .player-info { margin:8px 14px 12px; }
+.player-screen .work-cards { padding:8px 0; gap:8px; }
+.player-screen .work-card { padding:10px 12px; }
+.player-screen .work-card p { font-size:12px; }
+.player-screen .work-card h3 { font-size:14px; margin:0 0 6px; }
+.player-screen table th,.player-screen table td { padding:8px 10px; }
+.player-menu { padding:8px 0; margin-bottom:12px; }
+.player-menu a { padding:7px 12px; font-size:13px; }
+.screen-intro { margin:0 0 6px; font-size:12px; }
+.section-shortcuts { margin-bottom:12px; }
+main > .heading { margin-bottom:12px; }
+main > .heading h1 { font-size:28px; margin-bottom:4px; }
+main > .clock-controls { padding:10px 0; gap:12px; }
+main > .clock-controls .player-info { margin:4px 0; padding:4px 8px; }
+.player-screen [hidden],main > .clock-controls [hidden] { display:none !important; }
+@media(max-width:600px) {
+  .player-screen > .production-panel { padding:12px; }
+  .player-screen > .production-panel form > label { flex-basis:100%; }
+}
+
+main > .resources { grid-template-columns:repeat(9,minmax(0,1fr)); }
+@media(max-width:900px) { main > .resources { grid-template-columns:repeat(4,minmax(0,1fr)); } main > .resources .resource:last-child { grid-column:1 / -1; display:flex; align-items:center; gap:12px; padding:4px 8px; } }
+@media(max-width:700px) { html { scroll-padding-top:150px; } }
+
+.map-inspector { position:fixed; right:16px; top:155px; z-index:30; width:min(390px,calc(100vw - 32px)); max-height:calc(100vh - 180px); overflow:auto; padding:14px; background:var(--panel); border:1px solid var(--accent); border-radius:10px; box-shadow:0 8px 30px #0008; }
+.map-inspector[hidden] { display:none !important; }
+.map-inspector-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.map-inspector-heading h3 { margin:0; font-size:15px; }
+.map-inspector-heading button { width:auto; margin:0; padding:5px 9px; }
+.map-inspector .details { width:auto; min-width:0; padding:0; border:0; }
+.map-inspector .food-card { border:0; }.map-inspector .food-card h3,.map-inspector .food-card > p { margin:8px 0; }
+.map-inspector .saved-note,.map-inspector .hall-icon,.map-inspector .eyebrow { display:none; }
+.map-inspector input[type="checkbox"] { width:auto; }
+@media(max-width:600px) { .map-inspector { top:auto; bottom:12px; max-height:55vh; } }
+main > .resources #header-rate-scrap,main > .resources #header-rate-metal,main > .resources #header-rate-electronics { display:block; font-size:9px; line-height:1.3; }
+
+.map-filters { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:8px 14px; font-size:12px; }
+.map-filters select { width:auto; padding:4px 8px; min-height:30px; }
+.map-filter-dim { opacity:.25; }
+.map-filter-match > rect { stroke:#f0cc72; stroke-width:.2; }
+
+
+/* Capacity is visible even when production is paused or currently zero. */
+.resource.is-full { background:#604b232e; }
+.resource .storage-full { display:inline-block; margin:2px 0; padding:1px 5px;
+  color:#ffe4a3; background:#604b23; border:1px solid #ac8547; border-radius:4px;
+  font-size:10px; line-height:1.4; text-decoration:none; }
+.resource .storage-full[hidden] { display:none; }
+.gameplay-tip { position:fixed; right:18px; bottom:18px; z-index:40;
+  width:min(360px,calc(100vw - 32px)); max-height:calc(100vh - 40px); overflow:auto;
+  padding:16px; color:var(--text,#eee); background:var(--panel,#20291e);
+  border:1px solid var(--line,#57604a); border-radius:10px; box-shadow:0 8px 30px #0007; }
+.gameplay-tip[hidden] { display:none; }
+.gameplay-tip p { margin:8px 0; font-size:14px; line-height:1.5; }
+.gameplay-tip a { color:var(--accent,#dbc47f); text-decoration:underline; }
+.tip-controls { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.tip-controls button,.tips-toggle { width:auto; min-height:30px; padding:5px 8px;
+  margin:0; font-size:12px; background:transparent; color:inherit;
+  border:1px solid var(--line,#57604a); border-radius:5px; cursor:pointer; }
+.tips-toggle { margin-left:8px; }
+@media print { .gameplay-tip,.tips-toggle { display:none; } }
+
+.resource-capacity { display:block; font-size:10px; color:var(--muted); line-height:1.4; }
+
+.map-panel { position:relative; }
+.map-build-button { position:absolute; left:10px; z-index:13; width:32px!important;
+  height:32px; min-height:32px; padding:0!important; margin:0!important; border-radius:5px;
+  background:var(--panel); color:var(--accent); border:1px solid var(--line); font-size:18px; }
+.map-build-button[aria-expanded="true"] { background:var(--accent); color:var(--bg); }
+.map-build-panel { position:absolute; left:10px; z-index:15; width:min(340px,calc(100% - 20px));
+  max-height:min(480px,60vh); overflow:auto; padding:12px; background:var(--panel);
+  border:1px solid var(--accent); border-radius:8px; box-shadow:0 8px 24px #0008; }
+.map-build-panel[hidden] { display:none; }
+.map-build-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.map-build-panel p { font-size:12px; line-height:1.4; margin:8px 0; }
+.map-build-panel .build-fields { grid-template-columns:1fr 1fr; gap:8px; }
+.map-build-panel .build-fields > div:first-child { grid-column:1 / -1; }
+.map-build-panel button { width:auto; padding:6px 9px; margin:6px 0; min-height:30px; }
+.map-build-panel form { margin:6px 0; }
+.map-build-panel input,.map-build-panel select { min-height:32px; font-size:12px; }
+.map-build-panel .player-info { padding:6px; }
+@media(pointer:coarse) { .map-build-button { width:36px!important; height:36px; } }

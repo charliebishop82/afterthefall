@@ -1,0 +1,22 @@
+{
+  "version": "prototype_v1",
+  "sources": {
+    "workbook": "Post_Apocalyptic_Game_V1_Building_Settings(1).xlsx",
+    "starting_values": "Season Start: starting_* and map_width/map_height",
+    "town_hall": "Buildings: town_hall, level 1",
+    "citizen_hp": "Citizen Economy: citizen_start_hp",
+    "citizen_morale": "Morale: morale_start",
+    "finalization_hours": "GDD v0.2, section 4"
+  },
+  "map_width": 40,
+  "map_height": 40,
+  "season_days": 30,
+  "finalization_hours": 3,
+  "beginner_protection_hours": 24,
+  "starting_attacks": 3,
+  "starting_population": 6,
+  "citizen_hp": 100,
+  "citizen_morale": 60,
+  "resources": {"food": 120, "water": 120, "scrap": 180, "metal": 40, "electronics": 10, "credits": 500},
+  "town_hall": {"width": 3, "height": 3, "hp": 1000, "housing": 10, "food_storage": 150, "water_storage": 150, "material_storage": 250}
+}

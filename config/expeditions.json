@@ -1,0 +1,10 @@
+{
+  "max_hours": 24,
+  "return_minutes": 15,
+  "level_bonus": 0.1,
+  "yield_per_hour": {
+    "scrap": 2,
+    "metal": 0.5,
+    "electronics": 0.1
+  }
+}

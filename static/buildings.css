@@ -1,0 +1,32 @@
+.building-controls { padding: 20px; border-top: 1px solid var(--line); }
+.building-controls p, .food-card > p, .map-help { color: var(--muted); font-size: 12px; }
+.building-controls form { margin: 18px 0; }
+.building-controls input[type="checkbox"] { width: auto; min-height: 0; margin-right: 8px; }
+.building-controls button { margin-top: 10px; }
+.details .building-controls { padding: 15px 0; }
+.build-fields { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; }
+.build-fields > div { min-width: 0; }
+.build-fields input { width: 100%; }
+.food-section { margin: 28px 0; }
+.food-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.food-card { border: 1px solid var(--line); background: var(--panel); border-radius: 4px; min-width: 0; }
+.food-card h3, .food-card > p { margin: 18px 20px; }
+.food-card .tag { margin-left: 8px; }
+progress { width: 100%; accent-color: var(--accent); }
+.ruin-list { max-height: 520px; overflow:auto; padding:20px; }
+.ruin-list details { border-top:1px solid var(--line); padding:12px 0; }
+.ruin-list summary { cursor:pointer; font-size:13px; }
+.ruin-list p { color:var(--muted); font-size:12px; }
+.map-help { padding: 0 20px 18px; }
+.map-legend { flex-wrap: wrap; }
+.map-scroll svg { cursor: crosshair; }
+.map-scroll svg a { cursor: pointer; }
+@media(max-width: 700px) {
+  .build-fields { grid-template-columns: 1fr 1fr; }
+  .build-fields > div:first-child { grid-column: 1 / -1; }
+  .building-controls { padding: 16px; }
+}
+
+#market, #diplomacy, #messages, #board { padding:20px; scroll-margin-top:24px; }
+#messages textarea, #board textarea { display:block; width:100%; min-height:100px; resize:vertical; background:var(--panel); color:var(--text); border:1px solid var(--line); padding:12px; font:inherit; }
+#messages textarea:focus-visible, #board textarea:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
