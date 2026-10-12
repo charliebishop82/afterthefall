@@ -48,7 +48,7 @@ def create_app(database=None, *, clock=time.time, port=8768, log_path=None, play
     def rotate(aid):
         g.cookie, g.actor = accounts.new_session(database, aid, stamp(), request.cookies.get(COOKIE))
     def page(body):
-        nav = '<div class="operator-heading"><div><p class="eyebrow">LOCAL ADMINISTRATION</p><h1>Operator console</h1></div><span>Save: '+escape(database.name)+'</span></div><nav class="operator-nav"><a href="/">Dashboard</a><a href="/players">Players & maps</a><a href="/logs">Logs</a><a href="/diagnostics">Diagnostics</a><a href="/controls?section=season">Season</a><a href="/controls?section=accounts">Accounts</a><a href="/controls?section=corrections">Corrections</a><a href="/controls?section=moderation">Moderation</a><a href="/controls?section=audit">Audit</a><a href="/bots">Bots</a></nav>'
+        nav = '<div class="operator-heading"><div><p class="eyebrow">LOCAL ADMINISTRATION</p><h1>Operator console</h1></div><span>Save: '+escape(database.name)+'</span></div><nav class="operator-nav"><a href="/">Dashboard</a><a href="/players">Players & maps</a><a href="/logs">Logs</a><a href="/performance">Performance</a><a href="/diagnostics">Diagnostics</a><a href="/controls?section=season">Season</a><a href="/controls?section=accounts">Accounts</a><a href="/controls?section=corrections">Corrections</a><a href="/controls?section=moderation">Moderation</a><a href="/controls?section=audit">Audit</a><a href="/bots">Bots</a></nav>'
         if g.actor and g.actor['account_id'] is not None:
             nav += f'<form method="post" action="/logout"><input type="hidden" name="token" value="{escape(g.actor["csrf"],quote=True)}"><button>Log out of console</button></form>'
         html=Template((ROOT/'templates/base.html').read_text(encoding='utf-8')).substitute(title='Operator suite',status='ADMIN',content=nav+body)
@@ -211,6 +211,11 @@ def create_app(database=None, *, clock=time.time, port=8768, log_path=None, play
             body+='<h2>Operator service — last 32 KB</h2><pre>'+escape(tail)+'</pre>'
         body+='<p>Permanent before/after audit history is shown under Controls. File logs rotate at 1 MB; three older files are retained.</p>'
         return page(body)
+
+    @app.get('/performance')
+    def performance():
+        from game.performance import panel
+        return page(panel(player_log_path,database))
 
     @app.get('/player-logs')
     def player_logs():

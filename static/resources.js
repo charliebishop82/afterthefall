@@ -121,6 +121,8 @@ async function refreshSupplies() {
     setText('amount-credits',Number(state.credits).toFixed(2));
     for(const row of state.expeditions || []) {
       setText('expedition-status-'+row.id,row.status==='returned'?'Returned':row.status==='exploring'?'Exploring':'Returning');
+      setText('expedition-elapsed-'+row.id,'Active time away: '+Math.floor(row.elapsed/60)+' min');
+      setText('expedition-summary-'+row.id,row.status==='returned'?'Returned — home':row.status+' · home in '+Math.ceil(row.seconds/60)+' min');
       setText('expedition-eta-'+row.id,row.status==='returned'?'Home — update panels for delivery details':'Home in '+Math.ceil(row.seconds/60)+' min');
       setText('expedition-haul-'+row.id,'Gathered: '+Object.entries(row.haul).map(([r,q])=>q.toFixed(1)+' '+r).join(' · '));
       const recall=document.getElementById('expedition-recall-'+row.id);if(recall)recall.disabled=row.status!=='exploring';

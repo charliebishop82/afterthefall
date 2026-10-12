@@ -156,6 +156,15 @@ def install_request_logging(app, database, log_path, clock):
                                       saved_clock_observed_at_completion=row[2])
             except sqlite3.Error:
                 record['saved_clock_lookup'] = 'unavailable'
+        # Includes authentication, handler work, lock waits and completion metadata
+        # lookup; excludes Waitress queueing and the final log write/network send.
+        duration=(time.perf_counter()-g.player_started)*1000
+        waiting=g.get('gameplay_lock_wait_ms',0)
+        record.update(duration_ms=round(duration,3),gameplay_lock_wait_ms=round(waiting,3),
+                      processing_ms=round(max(0,duration-waiting),3),
+                      gameplay_processing_ms=round(g.get('gameplay_processing_ms',0),3),
+                      slow_request=duration>=1000,lock_contention=waiting>=250)
+        response.headers['Server-Timing']=f'app;dur={duration:.3f}, game_lock;dur={waiting:.3f}'
         logger.info(json.dumps(record, ensure_ascii=True, allow_nan=False))
         response.headers['X-Request-ID'] = g.player_request_id
         return response

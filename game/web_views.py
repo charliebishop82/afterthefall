@@ -71,7 +71,8 @@ def settlement(path,state,actor,token,now):
     for module in (combat,market,diplomacy,communication,expansion_views):
         panels+=module.panel(path,state,token,now)
     from game.expeditions import panel as expedition_panel
-    panels+=expedition_panel(state,token)
+    from game.expeditions import summary as expedition_summary
+    panels+=expedition_panel(state,token)+expedition_summary(state)
     return html.replace('<main id="main">','<main id="main">'+bar).replace('</main>',panels+'</main>')
 
 

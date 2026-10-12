@@ -1597,3 +1597,46 @@ buildings are unchanged; original workbook and legacy profiles remain read-only.
 Restart game, admin and bot runner to reload cached rules; no save reset needed.
 Online guide/catalogue and manifest are updated. The PDF remains labelled as
 previous-edition. New regressions join automatic discovery; Codex ran no tests.
+
+
+## Expedition crew visibility (owner validation pending)
+Military expedition cards now list every participating citizen's name, ID and
+launch level, active elapsed time and time until return. Recall remains available
+while exploring; returning crews must complete their normal journey. Overview
+shows Expeditions underway with names and a link to manage/recall. All active
+trips remain visible regardless of history length; up to ten completed trips
+follow. Elapsed time excludes paused time and stops at return. Existing rows
+get crew names from their saved crew links; no save migration/reset is required.
+Restart game/admin with the same save and refresh. Tests are automatically
+discovered by the parallel runner; Codex did not run tests or playtests.
+
+
+## Always-visible main menu (owner validation pending)
+The existing game menu is now a fixed bottom dock: Overview, Build, Citizens,
+Economy, Military and Diplomacy. Vector icons keep visible labels and full
+accessible names; active-page highlighting and existing hash navigation remain.
+All six fit compactly on narrow screens. Bottom spacing protects content and
+mobile inspectors/tip cards sit above the dock. No duplicate navigation or
+gameplay changes. Restart the game and refresh with the same save. Optional Node
+UI regressions join automatic --include-ui discovery. Codex ran no tests.
+
+
+## Request performance logging (owner validation pending)
+Existing player-actions JSON logs now include duration_ms, gameplay_lock_wait_ms,
+processing_ms (total excluding that lock wait) and gameplay_processing_ms (time
+inside the serialized handler). Slow requests are flagged at 1000 ms; lock
+contention at 250 ms. Server-Timing exposes total application and lock-wait
+durations in browser Network tools, only when request logging is enabled.
+Timing covers Flask authentication, handler and completion metadata lookup, but
+not time queued in Waitress before Flask, final log write/network transmission,
+or a separate SQLite wait breakdown. Processing time includes database waits.
+Admin Performance aggregates the latest bounded sample (up to 2000 completed
+requests from the last 512 KB of each current/5 rotated player logs), filtered
+to this database. It shows route/action counts, average/p95/max time, lock wait,
+slow counts and latest 20 slow requests with links to existing request traces.
+Older records without lock timing are labelled unknown rather than zero.
+Start game/admin with the same commands/save after stopping old copies. No reset
+is needed. Use the existing matching --log-file/--player-log-file if customized.
+Owner observation: run normal play/bots for 10–15 minutes, then review Admin →
+Performance. Logging adds no gameplay changes and no new database writes.
+New regression tests join automatic discovery; Codex did not run tests/servers.

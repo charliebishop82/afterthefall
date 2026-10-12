@@ -8,7 +8,16 @@ function menuCategory(id,heading,isBuilding=false) {
   if (['messages','board','diplomacy'].includes(id) || /Public news|Your notifications/.test(heading)) return 'social';
   return 'overview';
 }
-if (typeof module !== 'undefined') module.exports={menuCategory};
+const NAV_ICONS={
+  overview:'M3 10l9-7 9 7 M5 9v12h14V9 M9 21v-7h6v7',
+  build:'M4 20l9-9 M11 4l3-2 8 8-3 3-8-9 M2 18l4 4',
+  citizens:'M8 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M2 21v-4a6 6 0 0 1 12 0v4 M16 4a3 3 0 0 1 0 6 M17 13a5 5 0 0 1 5 5v3',
+  economy:'M3 7h17l-4-4 M21 17H4l4 4',
+  military:'M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6l8-4 M8 12l3 3 5-6',
+  social:'M3 5h18v14H3z M3 5l9 8 9-8'
+};
+const NAV_LABELS={overview:'Overview',build:'Build',citizens:'Citizens',economy:'Economy',military:'Military',social:'Diplomacy'};
+if (typeof module !== 'undefined') module.exports={menuCategory,NAV_ICONS,NAV_LABELS};
 if (typeof document !== 'undefined') (() => {
   const main = document.getElementById('main');
   if (!main || !main.querySelector('.clock-controls')) return;
@@ -22,10 +31,15 @@ if (typeof document !== 'undefined') (() => {
     return [key,section];
   }));
   const menu = document.createElement('nav');
+  document.body.classList.add('has-player-dock');
   menu.className = 'player-menu'; menu.setAttribute('aria-label','Game pages');
   for (const [key,label] of views) {
     const link = document.createElement('a'); link.href = '#screen-'+key;
-    link.textContent = label; menu.append(link);
+    link.setAttribute('aria-label',label);link.title=label;
+    const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');icon.setAttribute('focusable','false');
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',NAV_ICONS[key]);icon.append(path);
+    const text=document.createElement('span');text.textContent=NAV_LABELS[key];link.append(icon,text);menu.append(link);
   }
   function category(element) {
     return menuCategory(element.id,element.querySelector('h2')?.textContent || '',

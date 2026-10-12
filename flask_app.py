@@ -52,8 +52,14 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
     def serialized_gameplay(view):
         @wraps(view)
         def ordered(*args, **kwargs):
+            waiting=time.perf_counter()
             with gameplay_lock:
-                return view(*args, **kwargs)
+                started=time.perf_counter()
+                g.gameplay_lock_wait_ms=(started-waiting)*1000
+                try:
+                    return view(*args, **kwargs)
+                finally:
+                    g.gameplay_processing_ms=(time.perf_counter()-started)*1000
         return ordered
 
     def now():return int(clock())

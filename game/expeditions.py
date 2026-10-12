@@ -34,7 +34,14 @@ def prepare(c):
 
 def read(c,sid):
     if not exists(c):return []
-    return [dict(row) for row in c.execute('SELECT * FROM waste_expeditions WHERE settlement_id=? ORDER BY expedition_id',(sid,))]
+    rows=[dict(row) for row in c.execute('SELECT * FROM waste_expeditions WHERE settlement_id=? ORDER BY expedition_id',(sid,))]
+    crews={}
+    for eid,cid,name,level in c.execute('''SELECT ec.expedition_id,ec.citizen_id,c.name,ec.level
+        FROM waste_expedition_citizens ec JOIN citizens c USING(citizen_id)
+        JOIN waste_expeditions e USING(expedition_id) WHERE e.settlement_id=? ORDER BY ec.citizen_id''',(sid,)):
+        crews.setdefault(eid,[]).append(dict(id=cid,name=name,level=level))
+    for row in rows:row['crew']=crews.get(row['expedition_id'],[])
+    return rows
 
 def decorate(c,state):
     rows=read(c,state['settlement']['settlement_id']);state['expeditions']=rows
@@ -65,9 +72,10 @@ def live(state):
     now=state['settlement']['simulation_processed_at']
     return [dict(id=row['expedition_id'],status=row['status'],
                  seconds=max(0,row['returns_at']-now),
+                 elapsed=max(0,min(now,row['returns_at'])-row['started_at']),
                  haul={r:rate*max(0,min(now,row['gather_until'])-row['started_at'])/3600
                        for r,rate in json.loads(row['yields']).items()})
-            for row in state.get('expeditions',[])[-10:]]
+            for row in display_rows(state)]
 
 def shift_clock(c,state,seconds):
     if seconds and exists(c):
@@ -165,10 +173,14 @@ def panel(state,token):
         choices=''.join(f'<label><input type="checkbox" name="citizen_id" value="{c["citizen_id"]}">{escape(c["name"])} (level {c["level"]})</label>' for c in eligible)
         html+=social.form(token,'expeditions','launch',choices+'<label>Packed Food <input name="food" type="number" min="1" max="1000000" value="6" required></label><label>Packed Water <input name="water" type="number" min="1" max="1000000" value="6" required></label><button>Launch expedition</button></form>')
     else:html+='<p>Release a worker to make a citizen available. Launches require an active season and settlement.</p>'
-    for row in reversed(state.get('expeditions',[])[-10:]):
+    for row in display_rows(state):
         stamp=datetime.fromtimestamp(row['returns_at'],timezone.utc).strftime('%d %b %H:%M UTC')
         eid=row['expedition_id']
-        html+=f'<div class="building-controls"><h3>Expedition #{eid} · <span id="expedition-status-{eid}">{row["status"].title()}</span></h3><p>Return: {stamp} · <span id="expedition-eta-{eid}">Updates while playing</span></p><p id="expedition-haul-{eid}"></p>'
+        crew=crew_label(row)
+        seconds=max(0,row['returns_at']-state['settlement']['simulation_processed_at'])
+        elapsed=max(0,min(state['settlement']['simulation_processed_at'],row['returns_at'])-row['started_at'])
+        html+=f'<p><strong>{escape(crew)}</strong></p><p id="expedition-elapsed-{eid}">Active time away: {math.floor(elapsed/60)} min</p>'
+        html+=f'<div class="building-controls"><h3>Expedition #{eid} · <span id="expedition-status-{eid}">{row["status"].title()}</span></h3><p>Return: {stamp} · <span id="expedition-eta-{eid}">Home in {math.ceil(seconds/60)} min</span></p><p id="expedition-haul-{eid}"></p>'
         if row['status']=='exploring':html+=social.form(token,'expeditions','recall',social.hidden('expedition_id',eid)+f'<button id="expedition-recall-{eid}">Recall — 15-minute return</button></form>')
         if row['status']=='returned':
             html+='<p>Delivered: '+escape(', '.join(f'{v:.1f} {r.title()}' for r,v in json.loads(row['delivered']).items() if v>0) or 'Nothing retained')+'</p>'
@@ -176,3 +188,23 @@ def panel(state,token):
             if any(lost.values()):html+='<p>Discarded because storage was full: '+escape(', '.join(f'{v:.1f} {r.title()}' for r,v in lost.items() if v>0))+'</p>'
         html+='</div>'
     return html+'</section>'
+
+
+def display_rows(state):
+    rows=state.get('expeditions',[])
+    active=sorted((r for r in rows if r['status']!='returned'),key=lambda r:r['expedition_id'],reverse=True)
+    history=sorted((r for r in rows if r['status']=='returned'),key=lambda r:r['expedition_id'],reverse=True)[:10]
+    return active+history
+
+def crew_label(row):
+    return ', '.join(f"{c['name']} (#{c['id']}, level {c['level']} at launch)" for c in row.get('crew',[])) or 'Crew details unavailable'
+
+def summary(state):
+    active=[r for r in display_rows(state) if r['status']!='returned']
+    if not active:return ''
+    now=state['settlement']['simulation_processed_at']
+    html='<section class="production-panel" id="expeditions-summary"><h2>Expeditions underway</h2>'
+    for row in active:
+        eid=row['expedition_id']
+        html+=f'<p>{escape(crew_label(row))} · <span id="expedition-summary-{eid}">{row["status"].title()} · home in {math.ceil(max(0,row["returns_at"]-now)/60)} min</span></p>'
+    return html+'<a href="#expeditions">Manage expeditions / recall early</a></section>'
