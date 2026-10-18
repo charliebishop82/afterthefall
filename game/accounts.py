@@ -24,6 +24,8 @@ def prepare(path):
         prepare_market(c,int(time.time()))
         from game.expeditions import prepare as prepare_expeditions
         prepare_expeditions(c)
+        from game.offline import prepare as prepare_offline
+        prepare_offline(c)
 
 
 def password_hash(password):

@@ -43,11 +43,16 @@ def occupancy(state, bid, exclude_job=None):
     return stored
 
 
+def compatible_home(state, unit_type, building):
+    unit=state['config']['units'][unit_type]
+    return building['building_type'] in (unit['storage'],unit.get('starter_storage'))
+
+
 def home_for(state, unit_type, exclude_job=None):
     from game.economy import utilities
     status=utilities(state)['buildings']
     for b in state['buildings']:
-        if b['building_type']==state['config']['units'][unit_type]['storage'] and b['status']=='active' and not status[b['building_id']]['reason'] and occupancy(state,b['building_id'],exclude_job)<capacity(state,b):
+        if compatible_home(state,unit_type,b) and b['status']=='active' and not status[b['building_id']]['reason'] and occupancy(state,b['building_id'],exclude_job)<capacity(state,b):
             return b
     return None
 

@@ -3,7 +3,7 @@
 Every world registers its cleanup with the owning test and gets a fresh save.
 Building/player shortcuts prepare fixtures; assertions stay in feature tests.
 """
-from contextlib import closing
+from contextlib import closing, contextmanager
 import http.client
 import json
 from pathlib import Path
@@ -19,6 +19,26 @@ from game import accounts, combat
 from game.buildings import change_building
 from game.settlement import account_scope, read_settlement, load_config
 from game.simulation import advance_settlement
+
+
+@contextmanager
+def database_baseline(path):
+    """Snapshot a disposable test save once; restore before independent cases.
+
+    Use SQLite backup rather than copying files, so committed WAL content is
+    included. Call restore only with all other fixture connections closed.
+    The baseline is private to this context, never shared across tests/workers.
+    No production rules or command functions are patched.
+    """
+    with closing(sqlite3.connect(':memory:')) as baseline:
+        with closing(connect_database(path)) as source:
+            source.backup(baseline)
+
+        def restore():
+            with closing(connect_database(path)) as target:
+                baseline.backup(target)
+
+        yield restore
 
 
 def fixed_map_seed():
@@ -83,6 +103,12 @@ class SupportFixture:
 
 class SupportWorld(SupportFixture):
     def __init__(self, owner):
+        # Real feature cases clone the class baseline; its factory uses a plain owner.
+        import unittest
+        if isinstance(owner,unittest.TestCase):
+            world=baseline_world(owner,'support',SupportWorld)
+            self.__dict__.update(vars(world))
+            return
         self.addCleanup = owner.addCleanup
         self.setup_support()
 
@@ -140,6 +166,11 @@ class CombatFixture:
 
 class CombatWorld(CombatFixture):
     def __init__(self, owner):
+        import unittest
+        if isinstance(owner,unittest.TestCase):
+            world=baseline_world(owner,'combat',CombatWorld)
+            self.__dict__.update(vars(world))
+            return
         self.addCleanup = owner.addCleanup
         self.setup_combat()
 
@@ -157,7 +188,7 @@ class HTTPFixture:
             token,session=accounts.new_session(self.path,aid,1000)
             self.players.append((aid,token,session['csrf']))
         self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:1000)
-        self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
+        self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True);self.thread.start()
         self.addCleanup(self.stop)
 
     def stop(self):
@@ -183,3 +214,158 @@ class HTTPWorld(HTTPFixture):
         self.addCleanup = owner.addCleanup
         self.setup_http()
 
+
+
+class FlaskFixture:
+    """Disposable Flask world with real account registration for auth coverage."""
+    def setUp(self):
+        from flask_app import create_app
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.path = Path(self.tmp.name)/'playtest.db'; self.now = 1000
+        self.app = create_app(self.path, clock=lambda:self.now)
+        self.app.config['TESTING'] = True
+        self.client = self.app.test_client()
+
+    def get(self, client=None, path='/', **kwargs):
+        return (client or self.client).get(path, base_url='http://127.0.0.1:8767', **kwargs)
+
+    def post(self, path, fields, client=None, **kwargs):
+        return (client or self.client).post(path, data=fields, base_url='http://127.0.0.1:8767', **kwargs)
+
+    def console_post(self, path, fields):
+        from flask_app import COOKIE
+        from admin_suite import create_app as console_app, COOKIE as console_cookie
+        client = console_app(self.path, clock=lambda:self.now).test_client()
+        player_token = self.client.get_cookie(COOKIE, domain='127.0.0.1').value
+        actor = accounts.session(self.path, player_token, self.now)
+        token, session = accounts.new_session(self.path, actor['account_id'], self.now)
+        client.set_cookie(console_cookie, token, domain='127.0.0.1')
+        return client.post(path, data={**fields, 'token':session['csrf']}, base_url='http://127.0.0.1:8768')
+
+    def player(self, name, client=None, enroll=True):
+        import re
+        client = client or self.client
+        response = self.get(client)
+        token = re.search('name="token" value="([^"]+)"', response.text)[1]
+        result = self.post('/register', {'username':name, 'password':'test-password-long', 'token':token, 'is_admin':'1'}, client)
+        self.assertEqual(result.status_code, 303)
+        token = re.search('name="token" value="([^"]+)"', self.get(client).text)[1]
+        if enroll:self.assertEqual(self.post('/settlement', {'name':name, 'token':token}, client).status_code, 303)
+        return token
+
+    def launch(self):
+        from game import admin
+        token = self.player('owner'); admin.grant(self.path, 'owner', self.now)
+        self.assertEqual(self.console_post('/lobby', {'action':'start', 'reason':'ready', 'token':token}).status_code, 303)
+        return token
+
+
+
+class EquipmentFixture(FlaskFixture):
+    """Seed accounts for equipment tests; real gameplay forms stay unchanged.
+
+    Registration/hashing/login have dedicated real Flask/security coverage.
+    Each equipment test still creates its own database and normal sessions.
+    """
+    def player(self, name, client=None, enroll=True):
+        from flask_app import COOKIE
+        client=client or self.client
+        with closing(connect_database(self.path)) as c,c:
+            aid=c.execute("INSERT INTO accounts(username,password_hash,display_name,created_at) VALUES (?,'!',?,?)",(name,name,self.now)).lastrowid
+        token,session=accounts.new_session(self.path,aid,self.now)
+        client.set_cookie(COOKIE,token,domain='127.0.0.1')
+        if enroll:
+            self.assertEqual(self.post('/settlement',{'name':name,'token':session['csrf']},client).status_code,303)
+        return session['csrf']
+
+    def start(self):
+        self.token=self.launch()
+        self.a=self.sql("SELECT account_id FROM accounts WHERE username='owner'")[0][0]
+        self.sid=self.sql('SELECT settlement_id FROM settlements WHERE account_id=?',(self.a,))[0][0]
+        self.sql('UPDATE settlement_resources SET credits=100000 WHERE settlement_id=?',(self.sid,))
+
+    def sql(self,query,args=()):
+        with closing(connect_database(self.path)) as c,c:return c.execute(query,args).fetchall()
+
+    def state(self):
+        with account_scope(self.a):return read_settlement(self.path)
+
+    def home(self,kind):
+        state=self.state();key=state['config']['units'][kind]['starter_storage']
+        bid=self.sql("INSERT INTO buildings(settlement_id,building_type,level,origin_x,origin_y,current_hp,status,created_at,completed_at) VALUES (?,?,1,18,21,150,'active',1000,1000) RETURNING building_id",(self.sid,key))[0][0]
+        if kind=='repair_drone':
+            citizen=next(c for c in state['citizens'] if c['assignment']=='unassigned')
+            self.sql("INSERT INTO citizen_assignments(citizen_id,settlement_id,assignment_type,building_id,assigned_at) VALUES (?,?,'production',?,1000)",(citizen['citizen_id'],self.sid,bid))
+        return bid
+
+    def trade(self,action,kind='offensive_drone',quantity=1):
+        from game import equipment_market as market
+        with account_scope(self.a):return market.transact(self.path,'equipment_'+action,1000,unit_type=kind,quantity=quantity)
+
+
+
+class WorldBaseline:
+    """Prepare once, then give each test its own SQLite backup and attributes.
+
+    Baselines belong to one test class/process and never touch player saves.
+    Use only for fixture setup, not tests of initialization or migrations.
+    """
+    def __init__(self, owner, factory):
+        from types import SimpleNamespace
+        self.world=factory(SimpleNamespace(addCleanup=owner.addClassCleanup))
+        self.saved=sqlite3.connect(':memory:')
+        owner.addClassCleanup(self.saved.close)
+        with closing(connect_database(self.world.path)) as source:
+            source.backup(self.saved)
+
+    def restore(self, owner):
+        from copy import deepcopy
+        # Allocate via the fixture type: built-in containers reject object.__new__.
+        # Do not invoke __init__, which would rebuild the world.
+        fixture_type=type(self.world)
+        world=fixture_type.__new__(fixture_type)
+        for name,value in vars(self.world).items():
+            if not name.startswith('_') and name not in ('tmp','temp','path','addCleanup'):
+                setattr(world,name,deepcopy(value))
+        world.addCleanup=owner.addCleanup
+        world.tmp=tempfile.TemporaryDirectory();owner.addCleanup(world.tmp.cleanup)
+        if hasattr(self.world,'temp'):world.temp=world.tmp
+        world.path=Path(world.tmp.name)/'baseline-copy.db'
+        # This path is new: the production connector deliberately requires an existing file.
+        # SQLite backup creates the private test database before normal game connections open it.
+        with closing(sqlite3.connect(world.path)) as target:
+            self.saved.backup(target)
+        return world
+
+
+def baseline_world(owner,key,factory):
+    """Lazy per-class fixture baseline; restored saves are never shared."""
+    cls=type(owner)
+    if '_world_baselines' not in cls.__dict__:
+        cls._world_baselines={}
+        cls.addClassCleanup(cls._world_baselines.clear)
+    if key not in cls._world_baselines:
+        cls._world_baselines[key]=WorldBaseline(cls,factory)
+    return cls._world_baselines[key].restore(owner)
+
+
+def restore_case_baseline(case,key,prepare='prepare_world'):
+    """Restore public fixture fields without sharing TestCase runtime state."""
+    def factory(owner):
+        world=type(case)()
+        world.addCleanup=owner.addCleanup
+        if callable(prepare):prepare(world)
+        else:getattr(world,prepare)()
+        return world
+    world=baseline_world(case,key,factory)
+    case.__dict__.update({k:v for k,v in vars(world).items()
+                         if not k.startswith('_') and k!='addCleanup'})
+
+
+def versioned_support_world(owner,action,version):
+    def factory(preparer):
+        world=SupportWorld(preparer)
+        world.change(action)
+        world.config=load_config(version)
+        return world
+    return baseline_world(owner,action,factory)

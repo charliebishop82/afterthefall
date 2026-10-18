@@ -107,9 +107,9 @@
           "workers": 1.0,
           "minutes": 120.0,
           "hp": 1400.0,
-          "scrap": 250.0,
-          "metal": 120.0,
-          "electronics": 10.0,
+          "scrap": 150.0,
+          "metal": 50.0,
+          "electronics": 5.0,
           "food": 3.0,
           "water": 3.0,
           "food_storage": 225.0,
@@ -1475,7 +1475,7 @@
   "construction": {
     "worker_exponent": 0.5,
     "town_hall_upgrade_productivity": 0.5,
-    "coverage_fraction": 0.75,
+    "coverage_fraction": 0.5,
     "shutdown_condition": 0.25,
     "cold_storage_unpowered_fraction": 0.25
   },

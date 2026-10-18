@@ -20,11 +20,12 @@ from game.buildings import change_building
 from accounts_app import AccountServer
 
 
-from tests.fixtures import CombatFixture
+from tests.fixtures import CombatFixture,CombatWorld
 
 class CombatTests(CombatFixture, unittest.TestCase):
     def setUp(self):
-        self.setup_combat()
+        world=CombatWorld(self)
+        self.__dict__.update({k:v for k,v in vars(world).items() if k!='addCleanup'})
 
     def test_source_values_match_current_workbook(self):
         ns={'s':'http://schemas.openxmlformats.org/spreadsheetml/2006/main'};found={}
@@ -114,6 +115,10 @@ class CombatTests(CombatFixture, unittest.TestCase):
         self.assertEqual(self.state(self.a)['resources']['scrap'],192)
         self.assertEqual(self.state(self.b)['resources']['scrap'],168)
         self.assertEqual(next(c for c in self.state(self.a)['citizens'] if c['citizen_id']==ids[0])['xp'],20)
+        notices=self.sql("SELECT account_id,message FROM notifications WHERE notification_type='raid_result' AND related_id=?",(aid,))
+        self.assertEqual({n[0] for n in notices},{self.a,self.b});self.assertEqual(len(notices),2)
+        self.advance(self.a,8200)
+        self.assertEqual(self.sql("SELECT count(*) FROM notifications WHERE notification_type='raid_result' AND related_id=?",(aid,))[0][0],2)
     def test_storage_overflow_is_lost_and_reserved_defender_stock_is_safe(self):
         self.weak_defense();aid,ids=self.launch()
         self.sql('UPDATE settlement_resources SET scrap=200 WHERE settlement_id=?',(self.sa,))
@@ -240,7 +245,7 @@ class CombatHTTPTests(unittest.TestCase):
             for name in ('alpha','bravo'):c.execute("INSERT INTO accounts(username,password_hash,display_name,created_at) VALUES (?,'!',?,1000)",(name,name))
         for aid,name in [(1,'alpha'),(2,'bravo')]:accounts.join(self.path,aid,name,1000)
         self.raw,self.session=accounts.new_session(self.path,1,1000);self.cookie='settlement_session='+self.raw
-        self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:self.now);self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();self.addCleanup(self.stop)
+        self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:self.now);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True);self.thread.start();self.addCleanup(self.stop)
     def stop(self):self.server.shutdown();self.server.server_close();self.thread.join()
     def request(self,method='GET',fields=None,cookie=None,headers=None):
         c=http.client.HTTPConnection(*self.server.server_address);h={'Cookie':self.cookie if cookie is None else cookie};body=urlencode(fields,doseq=True) if fields is not None else None

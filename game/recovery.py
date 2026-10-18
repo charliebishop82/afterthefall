@@ -45,8 +45,9 @@ def decorate(state):
     seen={}; allocations=[]
     for c in state['citizens']:c['effective_morale']=min(100,max(0,c['morale']+state.get('debt_morale_modifier',0)+c.get('exposure_morale_modifier',0)+(ration_morale if not c.get('away') else 0)))
     for _ in range(32):
-        allocation=housing(state,utility=utilities(state))
-        community_bonus=community(state)
+        utility=utilities(state)
+        allocation=housing(state,utility=utility)
+        community_bonus=community(state,utility=utility)
         for c in state['citizens']:c['community_morale_modifier']=community_bonus if not c.get('away') else 0
         modifiers={c['citizen_id']:(allocation['assignments'][c['citizen_id']]['quality']
                     if allocation['assignments'][c['citizen_id']] and not c.get('away') else 0) for c in state['citizens']}
@@ -119,6 +120,8 @@ def accrue(connection,state,seconds,now):
 
 
 def shift_clock(connection,state,seconds,now):
+    from game.offline import shift_activity
+    shift_activity(connection,state,seconds)
     from game.expeditions import shift_clock as expedition_shift
     expedition_shift(connection,state,seconds)
     from game.consequences import shift_clock as citizen_shift

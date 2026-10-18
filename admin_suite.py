@@ -215,7 +215,8 @@ def create_app(database=None, *, clock=time.time, port=8768, log_path=None, play
     @app.get('/performance')
     def performance():
         from game.performance import panel
-        return page(panel(player_log_path,database))
+        from game.background import panel as background_panel
+        return page(panel(player_log_path,database)+background_panel(database))
 
     @app.get('/player-logs')
     def player_logs():

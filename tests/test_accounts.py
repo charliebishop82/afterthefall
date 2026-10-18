@@ -90,7 +90,7 @@ class AccountTests(unittest.TestCase):
 class AccountHTTPTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.path=Path(self.tmp.name)/'accounts.db';accounts.prepare(self.path);self.now=1000
-        self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:self.now);self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();self.addCleanup(self.stop)
+        self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:self.now);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True);self.thread.start();self.addCleanup(self.stop)
     def stop(self):self.server.shutdown();self.server.server_close();self.thread.join()
     def request(self,method='GET',path='/',fields=None,cookie='',headers=None):
         client=http.client.HTTPConnection(*self.server.server_address);h={'Cookie':cookie}
@@ -135,7 +135,7 @@ class AccountHTTPTests(unittest.TestCase):
         self.assertEqual(self.request(path='/api/resources',cookie=b)[0],200)
     def test_authenticated_session_survives_server_restart(self):
         cookie,token=self.player('alpha');self.stop()
-        self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:self.now);self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
+        self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:self.now);self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True);self.thread.start()
         self.assertEqual(self.request(path='/api/resources',cookie=cookie)[0],200)
         self.assertIn('Logged in as alpha',self.request(cookie=cookie)[2])
 

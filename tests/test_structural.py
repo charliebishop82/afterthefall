@@ -2,7 +2,7 @@
 from contextlib import closing
 import json,sqlite3,unittest
 from unittest.mock import patch
-from tests.fixtures import SupportWorld
+from tests.fixtures import SupportWorld,versioned_support_world
 from game import combat,structural,ruins,manufacturing
 from game.settlement import account_scope,read_state,load_config
 from game.buildings import spec,job_speed,change_building
@@ -10,8 +10,7 @@ from database.create_database import connect_database
 
 class StructuralTests(unittest.TestCase):
     def setUp(self):
-        self.w=SupportWorld(self)
-        self.w.change('enable_structural');self.w.config=load_config('prototype_v12')
+        self.w=versioned_support_world(self,'enable_structural','prototype_v12')
 
     def connection(self,account=None):
         c=connect_database(self.w.path);c.row_factory=sqlite3.Row

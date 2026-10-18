@@ -1,5 +1,5 @@
 {
-  "edition": "2026-10-11",
+  "edition": "2026-10-18",
   "profile": "prototype_v13 + expansion_v1",
   "sections": [
     {
@@ -77,10 +77,18 @@
     {
       "id": "equipment",
       "title": "Complete hardware reference"
+    },
+    {
+      "id": "starter-storage-reference",
+      "title": "Starter military storage reference"
+    },
+    {
+      "id": "map-first-interface",
+      "title": "Your map-first command screen"
     }
   ],
-  "building_types": 42,
-  "building_levels": 108,
+  "building_types": 48,
+  "building_levels": 114,
   "hardware_types": 6,
   "diagrams": [
     "loop",
@@ -93,8 +101,10 @@
     "debt"
   ],
   "config_hashes": {
-    "prototype_v13.json": "38dac8a907d4c1954007d59e3305c04445700c575ae5e82b8e75d96b82565672",
+    "prototype_v13.json": "1769cd56304539940bdc8c4ab96a1febb77c6f5c91084d8563e9110e8666d29b",
     "combat_v1.json": "dd539f40226a6123e705c85661a0f5c7d97ca4b1c9195ae4ce355019e0b23af5",
     "expansion_v1.json": "1a14d40657a360bf983d6e463daf669d1997b37a2cf51817ff69d19ca2d7bbb5"
-  }
+  },
+  "html_updated": "2026-10-18",
+  "pdf_edition": "2026-10-11"
 }

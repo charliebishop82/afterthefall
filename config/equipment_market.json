@@ -1,0 +1,38 @@
+{
+  "offensive_drone": {
+    "buy_price": 297,
+    "sell_price": 99,
+    "reserve_price": 297,
+    "daily_quantity": 1
+  },
+  "air_defense_drone": {
+    "buy_price": 301,
+    "sell_price": 100,
+    "reserve_price": 301,
+    "daily_quantity": 1
+  },
+  "ground_defense_drone": {
+    "buy_price": 238,
+    "sell_price": 79,
+    "reserve_price": 238,
+    "daily_quantity": 1
+  },
+  "repair_drone": {
+    "buy_price": 243,
+    "sell_price": 81,
+    "reserve_price": 243,
+    "daily_quantity": 1
+  },
+  "missile": {
+    "buy_price": 360,
+    "sell_price": 120,
+    "reserve_price": 360,
+    "daily_quantity": 1
+  },
+  "interceptor": {
+    "buy_price": 243,
+    "sell_price": 81,
+    "reserve_price": 243,
+    "daily_quantity": 2
+  }
+}

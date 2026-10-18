@@ -11,7 +11,7 @@ $alerts
   <div class="staffing"><form method="post" action="/administrator"><input type="hidden" name="token" value="$token"><div><label for="administrator">Town Hall Administrator</label><select id="administrator" name="citizen_id" $staff_disabled>$options</select></div><button type="submit" $staff_disabled>Assign Administrator</button></form><p>The Administrator produces Food and Water. Total Food storage: $total_food_storage. Food buildings add production when staffed and supplied with utilities.</p></div>
 </section>
 <div class="settlement-layout">
-  <section class="map-panel"><div class="panel-heading"><h2>Settlement map</h2><span>40 × 40 TILES · NORTH ↑</span></div><div class="map-scroll" tabindex="0" aria-label="Scrollable settlement map">$map</div><div class="map-legend"><span><i></i>Town Hall · Green: Food · Gold: work site</span><span>Dashed line: utilities. Outline: placement preview. Person + number: assigned citizens. Green percentage: build/upgrade/repair. Amber pickaxe &amp; shrinking bar: scavenging remaining.</span></div><p class="map-help">Click empty land to choose a site, or enter coordinates below. Click a building to manage it. Workers require at least 75% utility coverage.</p></section>
+  <section class="map-panel"><div class="panel-heading"><h2>Settlement map</h2><span>40 × 40 TILES · NORTH ↑</span></div><div class="map-scroll" tabindex="0" aria-label="Scrollable settlement map">$map</div><div class="map-legend"><span><i></i>Town Hall · Green: Food · Gold: work site</span><span>Dashed line: utilities. Outline: placement preview. Person + number: assigned citizens. Green percentage: build/upgrade/repair. Amber pickaxe &amp; shrinking bar: scavenging remaining.</span></div><p class="map-help">Click empty land to choose a site, or enter coordinates below. Click a building to manage it. Workers require at least 50% utility coverage.</p></section>
   <aside class="details" id="town-hall" tabindex="-1"><p class="eyebrow">SETTLEMENT ANCHOR</p><div class="hall-icon" aria-hidden="true">▥</div><h2>Town Hall</h2><span class="tag">LEVEL $hall_level</span><p>Your first shelter and the heart of your settlement.</p><dl><div><dt>Condition</dt><dd>$hp / $max_hp HP</dd></div><div><dt>Housing</dt><dd>$population / $housing citizens</dd></div><div><dt>Food storage</dt><dd>$food_storage units</dd></div><div><dt>Water storage</dt><dd>$water_storage units</dd></div><div><dt>Material storage</dt><dd>$materials / $material_storage</dd></div></dl><p class="small-note">Scrap, Metal, and Electronics share material storage. At full health: $electricity Electricity capacity, $oxygen Oxygen capacity, $utility_radius-tile radius.</p>$hall_controls<div class="saved-note"><strong>Settlement established</strong><span>$created</span><p>Closing this page keeps your settlement saved. Return to the same address while the app is running.</p></div></aside>
 </div>
 $placement
@@ -30,3 +30,16 @@ $housing_summary
 <script src="/static/gameplay-tips.js" defer></script>
 
 <script src="/static/map-build.js" defer></script>
+
+<script src="/static/citizen-board.js" defer></script>
+
+<script src="/static/military-board.js" defer></script>
+<script src="/static/map-shell.js" defer></script>
+
+<script src="/static/menu-layout.js" defer></script>
+
+<script src="/static/citizen-xp.js" defer></script>
+
+<script src="/static/expedition-shortcut.js" defer></script>
+
+<script src="/static/operation-notices.js" defer></script>

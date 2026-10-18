@@ -225,3 +225,60 @@ main > .resources #header-rate-scrap,main > .resources #header-rate-metal,main >
   .has-player-dock .map-inspector { bottom:calc(95px + env(safe-area-inset-bottom,0px)); max-height:45vh; }
 }
 @media print { .player-menu { display:none; }.has-player-dock { padding-bottom:0; } }
+
+/* Citizen portal draft supplements the manual roster and action forms. */
+.citizen-board { padding:16px; border-bottom:1px solid var(--line); }
+.citizen-board > p { color:var(--muted); font-size:13px; }
+.citizen-board-toolbar,.citizen-filters { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.citizen-board-toolbar { justify-content:space-between; margin-bottom:12px; }
+.citizen-board-toolbar select { width:auto; font-size:12px; }
+.citizen-filters button { width:auto; padding:6px 10px; margin:0; font-size:12px; min-height:32px; }
+.citizen-filters button[aria-pressed="true"] { background:var(--accent); color:var(--bg); }
+.citizen-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(185px,1fr)); gap:10px; }
+.citizen-card { width:100%; display:flex; flex-direction:column; align-items:flex-start;
+  gap:6px; padding:14px; margin:0; text-align:left; background:var(--panel); color:var(--text,#eee);
+  border:1px solid var(--line); border-radius:10px; cursor:pointer; }
+.citizen-card:hover,.citizen-card[aria-pressed="true"] { border-color:var(--accent); }
+.citizen-card:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.citizen-card strong { font-size:15px; }.citizen-card-level { font-size:11px; color:var(--muted); }
+.citizen-avatar { display:grid; place-items:center; width:38px; height:38px; border-radius:50%;
+  background:#7b8f7433; border:1px solid var(--line); color:var(--accent); font-size:14px; }
+.citizen-state { font-size:11px; padding:3px 6px; border-radius:4px; background:#665835; }
+.citizen-state.free { background:#31583c; }.citizen-state.away { background:#34465d; }
+.citizen-meter { display:flex; flex-direction:column; gap:3px; width:100%; font-size:11px; }
+.citizen-meter progress { width:100%; height:7px; margin:0; }
+.citizen-inspector { position:fixed; top:155px; right:16px; z-index:35;
+  width:min(360px,calc(100vw - 32px)); max-height:calc(100vh - 255px); overflow:auto;
+  background:var(--panel); border:1px solid var(--accent); padding:16px; border-radius:10px;
+  box-shadow:0 8px 24px #0008; }
+.citizen-inspector[hidden] { display:none; }
+.citizen-inspector h3 { margin-top:0; }.citizen-inspector p { font-size:13px; }
+.citizen-inspector button { width:auto; padding:6px 10px; min-height:32px; }
+.citizen-quick-links { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.citizen-quick-links a { padding:6px 8px; border:1px solid var(--line); border-radius:5px; font-size:12px; }
+@media(max-width:600px) { .citizen-inspector { top:auto; bottom:95px; max-height:45vh; }.citizen-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.citizen-card { padding:10px; } }
+@media print { .citizen-inspector { display:none; } }
+
+.military-board { padding:18px; margin-bottom:18px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+.military-board > p,.military-operations p { font-size:13px; color:var(--muted); }
+.military-quick-links,.military-filters { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.military-quick-links a { padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:12px; }
+.military-filters button { width:auto; padding:6px 10px; margin:0; min-height:32px; font-size:12px; }
+.military-filters button[aria-pressed="true"] { background:var(--accent); color:var(--bg); }
+.military-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.military-stats > div { padding:12px; background:var(--bg); border:1px solid var(--line); border-radius:8px; }
+.military-stats strong { display:block; font-size:24px; }.military-stats span { font-size:11px; color:var(--muted); }
+.military-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+.military-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:14px; margin:0;
+  width:100%; background:var(--bg); color:var(--text,#eee); border:1px solid var(--line); border-radius:10px; text-align:left; }
+.military-card strong { font-size:15px; }.military-card span,.military-card small { font-size:12px; }
+.military-card:hover,.military-card[aria-pressed="true"] { border-color:var(--accent); }
+.military-card:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.military-operations { margin-top:18px; padding-top:12px; border-top:1px solid var(--line); }
+.military-operations a { font-size:13px; }
+.military-inspector { position:fixed; right:16px; top:155px; z-index:35; width:min(360px,calc(100vw - 32px));
+  max-height:calc(100vh - 255px); overflow:auto; padding:16px; background:var(--panel); border:1px solid var(--accent); border-radius:10px; box-shadow:0 8px 24px #0008; }
+.military-inspector[hidden] { display:none; }.military-inspector p,.military-inspector a { font-size:13px; }
+.military-inspector button { width:auto; padding:6px 10px; min-height:32px; }
+@media(max-width:600px) { .military-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }.military-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.military-inspector { top:auto; bottom:95px; max-height:45vh; } }
+@media print { .military-inspector { display:none; } }

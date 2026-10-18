@@ -30,6 +30,7 @@ ACTIONS = {
     'enable_housing', 'enable_recovery', 'enable_progression', 'enable_repairs',
     'enable_support', 'enable_maintenance', 'enable_structural',
     'enable_consequences', 'propose', 'accept', 'reject', 'cancel', 'launch',
+    'equipment_buy', 'equipment_sell', 'equipment_reserve_buy',
     'sell', 'reserve_buy', 'declare', 'war', 'withdraw', 'borrow', 'repay', 'invest', 'list', 'buy',
     'recall', 'send', 'post', 'archive', 'report', 'order', 'stop', 'rations', 'set',
     'queue', 'cancel_order', 'archive_message', 'archive_post',
@@ -44,7 +45,7 @@ ENUM_FIELDS = {
     'unit_type': {'offensive_drone', 'air_defense_drone',
                   'ground_defense_drone', 'repair_drone', 'missile', 'interceptor'},
     'treaty_type': {'peace', 'non_aggression', 'trade', 'mutual_defense', 'full_defense'},
-    'building_type': {'greenhouse', 'garden', 'hydroponics', 'drone_factory', 'oxygen_garden', 'air_defense_bay', 'salvage_depot', 'shack', 'trading_post', 'water_tank', 'wind_turbine', 'rain_collector', 'generator_plant', 'automated_turret', 'munitions_factory', 'recycler', 'house', 'root_cellar', 'ground_defense_bay', 'offensive_hangar', 'warehouse', 'cold_storage', 'solar_array', 'pup_tent', 'industrial_oxygen', 'oxygen_generator', 'missile_silo', 'engineering_workshop', 'clinic', 'vault', 'medical_center', 'electronics_fabricator', 'interceptor_battery', 'scrap_yard', 'apartment_block', 'anti_air_turret', 'town_hall', 'guard_post', 'community_center', 'purification_plant', 'upgraded_tent', 'well_pump'},
+    'building_type': {'starter_offensive_hangar','starter_air_defense_bay','starter_ground_defense_bay','starter_engineering_workshop','starter_missile_silo','starter_interceptor_battery','greenhouse', 'garden', 'hydroponics', 'drone_factory', 'oxygen_garden', 'air_defense_bay', 'salvage_depot', 'shack', 'trading_post', 'water_tank', 'wind_turbine', 'rain_collector', 'generator_plant', 'automated_turret', 'munitions_factory', 'recycler', 'house', 'root_cellar', 'ground_defense_bay', 'offensive_hangar', 'warehouse', 'cold_storage', 'solar_array', 'pup_tent', 'industrial_oxygen', 'oxygen_generator', 'missile_silo', 'engineering_workshop', 'clinic', 'vault', 'medical_center', 'electronics_fabricator', 'interceptor_battery', 'scrap_yard', 'apartment_block', 'anti_air_turret', 'town_hall', 'guard_post', 'community_center', 'purification_plant', 'upgraded_tent', 'well_pump'},
     'repeat': {'0', '1'}, 'exposed': {'0', '1'},
 }
 
@@ -140,6 +141,8 @@ def install_request_logging(app, database, log_path, clock):
             'outcome': 'rejected' if response.status_code >= 400 else 'completed',
             'duration_ms': round((time.perf_counter() - g.player_started) * 1000, 3),
         }
+        if g.get('catchup_metrics'):
+            record['catchup_calculations'] = g.catchup_metrics
         for key in ('player_error_type', 'player_error_code', 'player_error_frames'):
             if g.get(key) is not None:
                 record[key.removeprefix('player_')] = g.get(key)

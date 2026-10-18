@@ -44,7 +44,7 @@ to saved morale. The v5 one-time -10 base-morale penalty for becoming homeless
 remains separate and unchanged.
 
 Utilities `optional_power_housing_bonus` supplies **+1 morale** for Houses and
-Apartment Blocks with at least 75% functioning Electricity coverage. Optional
+Apartment Blocks with at least 50% functioning Electricity coverage. Optional
 comfort adds no mandatory power demand and loss of power never removes housing
 capacity. Housing priority includes this comfort bonus when ranking home quality.
 Workers, builders, scavengers, and the Administrator use effective morale in their

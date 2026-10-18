@@ -3,6 +3,8 @@
 from game.buildings import rules, spec, footprint, productivity
 
 from game.trading import available
+from functools import lru_cache
+from game.calculations import utility_allocation
 
 MATERIALS = ('scrap', 'metal', 'electronics')
 
@@ -18,13 +20,26 @@ def within_zone(state, x, y, b):
     return dx*dx+dy*dy <= spec(state,b)['radius']**2
 
 
+@lru_cache(maxsize=8192)
+def _coverage(bounds, zones):
+    """Geometry-only cache: condition and staffing change the supplied zones."""
+    x0,y0,w,h=bounds
+    return sum(any(max(zx-(x+.5),0,(x+.5)-(zx+zw))**2
+                   +max(zy-(y+.5),0,(y+.5)-(zy+zh))**2 <= radius**2
+                   for zx,zy,zw,zh,radius in zones)
+               for x in range(x0,x0+w) for y in range(y0,y0+h))/(w*h)
+
+
+def coverage_fraction(state, x, y, w, h, zones):
+    geometry=tuple((z['origin_x'],z['origin_y'],*footprint(state,z),spec(state,z)['radius']) for z in zones)
+    return _coverage((x,y,w,h),geometry)
+
+
 def zone_fraction(state, b, zones):
-    w,h=footprint(state,b)
-    return sum(any(within_zone(state,x,y,z) for z in zones)
-               for x in range(b['origin_x'],b['origin_x']+w)
-               for y in range(b['origin_y'],b['origin_y']+h))/(w*h)
+    return coverage_fraction(state,b['origin_x'],b['origin_y'],*footprint(state,b),zones)
 
 
+@utility_allocation
 def utilities(state):
     """Start from functioning self-starting sources; never bootstrap a utility cycle.
 
@@ -146,10 +161,12 @@ def rates(state, utility=None, seconds=None):
         if job['job_type']=='scavenging' and job['status'] in ('active','paused'):
             d=next(d for d in state['derelicts'] if d['settlement_derelict_id']==job['target_derelict_id'])
             totals=json.loads(d['random_result'])
+            from game.support import best
+            salvage_bonus=best(state,'salvage_bonus',utility)/100
+            work=speed(state,job,utility=utility)/job['work_required']*3600
             for r in loot:
-                from game.support import best
-                bonus=best(state,'salvage_bonus')/100 if r in MATERIALS else 0
-                loot[r]+=totals[r]*speed(state,job)/job['work_required']*3600*(1+bonus)
+                bonus=salvage_bonus if r in MATERIALS else 0
+                loot[r]+=totals[r]*work*(1+bonus)
     from game.production_flow import material_flow,supply_flow
     material_flow(state,utility,loot,store['material'],seconds)
     consumption={}

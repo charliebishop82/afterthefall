@@ -10,6 +10,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from database.create_database import connect_database
+from tests.fixtures import FlaskFixture,restore_case_baseline
 from flask_app import COOKIE, GAME_ROUTES, create_app, game_action, public_origin
 from game import accounts, admin, lobby
 from game.settlement import account_scope, read_settlement
@@ -18,6 +19,9 @@ from serve_game import server_options
 
 class PlaytestTests(unittest.TestCase):
     def setUp(self):
+        restore_case_baseline(self,'waiting-lobby',PlaytestTests.prepare_world)
+
+    def prepare_world(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.path = Path(self.tmp.name)/'playtest.db'
         lobby.prepare(self.path)
@@ -107,43 +111,32 @@ class PlaytestTests(unittest.TestCase):
         self.assertIsNone(self.state(self.player))
 
 
-class FlaskTests(unittest.TestCase):
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
-        self.path = Path(self.tmp.name)/'playtest.db'; self.now = 1000
-        self.app = create_app(self.path, clock=lambda:self.now)
-        self.app.config['TESTING'] = True
-        self.client = self.app.test_client()
+class FlaskTests(FlaskFixture, unittest.TestCase):
+    def test_rejected_building_release_keeps_game_interface(self):
+        token=self.launch()
+        with closing(connect_database(self.path)) as c:
+            citizen=c.execute('SELECT citizen_id FROM citizens ORDER BY citizen_id LIMIT 1').fetchone()[0]
+            building=c.execute('SELECT building_id FROM buildings ORDER BY building_id LIMIT 1').fetchone()[0]
+            before=c.execute('SELECT count(*) FROM citizen_assignments').fetchone()[0]
+        response=self.post('/buildings',dict(token=token,action='release',citizen_id=citizen,building_id=building))
+        self.assertEqual(response.status_code,400)
+        self.assertEqual(response.mimetype,'text/html')
+        self.assertIn('That citizen is not assigned to this building.',response.text)
+        self.assertIn('role="alert"',response.text)
+        self.assertIn('id="main"',response.text)
+        self.assertIn('/static/player-ui.js',response.text)
+        self.assertIn('Settlement / lobby',response.text)
+        with closing(connect_database(self.path)) as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM citizen_assignments').fetchone()[0],before)
 
-    def get(self, client=None, path='/', **kwargs):
-        return (client or self.client).get(path, base_url='http://127.0.0.1:8767', **kwargs)
-
-    def post(self, path, fields, client=None, **kwargs):
-        return (client or self.client).post(path, data=fields, base_url='http://127.0.0.1:8767', **kwargs)
-
-    def console_post(self, path, fields):
-        from admin_suite import create_app as console_app, COOKIE as console_cookie
-        client = console_app(self.path, clock=lambda:self.now).test_client()
-        player_token = self.client.get_cookie(COOKIE, domain='127.0.0.1').value
-        actor = accounts.session(self.path, player_token, self.now)
-        token, session = accounts.new_session(self.path, actor['account_id'], self.now)
-        client.set_cookie(console_cookie, token, domain='127.0.0.1')
-        return client.post(path, data={**fields, 'token':session['csrf']}, base_url='http://127.0.0.1:8768')
-
-    def player(self, name, client=None, enroll=True):
-        client = client or self.client
-        response = self.get(client)
-        token = re.search('name="token" value="([^"]+)"', response.text)[1]
-        result = self.post('/register', {'username':name, 'password':'test-password-long', 'token':token, 'is_admin':'1'}, client)
-        self.assertEqual(result.status_code, 303)
-        token = re.search('name="token" value="([^"]+)"', self.get(client).text)[1]
-        if enroll:self.assertEqual(self.post('/settlement', {'name':name, 'token':token}, client).status_code, 303)
-        return token
-
-    def launch(self):
-        token = self.player('owner'); admin.grant(self.path, 'owner', self.now)
-        self.assertEqual(self.console_post('/lobby', {'action':'start', 'reason':'ready', 'token':token}).status_code, 303)
-        return token
+    def test_action_error_escapes_message_and_does_not_replay_action(self):
+        token=self.launch()
+        with patch('flask_app.game_action',side_effect=ValueError('<script>bad()</script>')) as action:
+            response=self.post('/buildings',dict(token=token,action='release'))
+        self.assertEqual(response.status_code,400)
+        self.assertIn('&lt;script&gt;bad()&lt;/script&gt;',response.text)
+        self.assertNotIn('<script>bad()</script>',response.text)
+        action.assert_called_once()
 
     def test_waiting_render_and_game_routes_do_not_advance_time(self):
         token = self.player('owner'); self.now = 80000

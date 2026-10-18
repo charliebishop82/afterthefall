@@ -342,7 +342,7 @@ class BuildingHttpTests(unittest.TestCase):
         prepare_database(self.path); create_settlement(self.path,'Browser Test',now=1000)
         self.now=1000
         self.server=PrototypeServer(('127.0.0.1',0),self.path,clock=lambda:self.now)
-        self.thread=threading.Thread(target=self.server.serve_forever,daemon=True); self.thread.start()
+        self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True); self.thread.start()
         self.addCleanup(self.server.server_close); self.addCleanup(self.server.shutdown)
 
     def post(self, **values):

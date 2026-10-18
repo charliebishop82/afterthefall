@@ -2,6 +2,7 @@
 import argparse
 from datetime import datetime, timezone
 import json
+import math
 from pathlib import Path
 import subprocess
 import re
@@ -9,8 +10,48 @@ import shutil
 import sys
 import time
 import unittest
+from statistics import median
 
 ROOT = Path(__file__).resolve().parent
+
+
+def select_suite(discovered, root, suite):
+    """Quick is an explicit smoke selection; full discovery remains the default."""
+    if suite=='full':return list(discovered)
+    if suite!='quick':raise ValueError('Unknown test suite.')
+    manifest=json.loads((Path(root)/'tests/quick-suite.json').read_text(encoding='utf-8'))
+    if (not isinstance(manifest,list) or not manifest or any(not isinstance(m,str) for m in manifest)
+            or len(set(manifest))!=len(manifest)):
+        raise ValueError('Quick-suite manifest must contain unique module names.')
+    missing=set(manifest)-set(discovered)
+    if missing:raise ValueError('Quick-suite modules are missing from discovery: '+', '.join(sorted(missing)))
+    return [m for m in discovered if m in manifest or m.endswith('.cjs')]
+
+
+def schedule(planned, output, order='slow-first'):
+    """Use bounded saved history as a hint, never as a test selection filter."""
+    if order=='alphabetical':return sorted(planned),{}
+    durations={}
+    folders=sorted((p for p in Path(output).glob('parallel-*') if p.is_dir()),reverse=True)[:5]
+    for folder in folders:
+        summary_path=folder/'summary.json'
+        paths=[summary_path] if summary_path.is_file() else sorted(folder.glob('*.json'))
+        for path in paths:
+            if path.name in ('plan.json','schedule.json'):continue
+            try:
+                saved=json.loads(path.read_text(encoding='utf-8'))
+                if not isinstance(saved,dict):continue
+                rows=saved.get('modules',[]) if path==summary_path else [saved]
+                if not isinstance(rows,list):continue
+                for row in rows:
+                    if not isinstance(row,dict):continue
+                    name=row.get('module');seconds=row.get('elapsed_seconds')
+                    if (isinstance(name,str) and name in planned and name not in durations
+                            and type(seconds) in (int,float) and math.isfinite(seconds) and seconds>0):
+                        durations[name]=float(seconds)
+            except (OSError,ValueError):continue
+    neutral=median(durations.values()) if durations else 1.0
+    return sorted(planned,key=lambda name:(-durations.get(name,neutral),name)),durations
 
 
 def modules(root):
@@ -66,10 +107,11 @@ def read_result(path, code, module):
     return data
 
 
-def summary(results, planned, elapsed, interrupted):
+def summary(results, planned, elapsed, interrupted, *, suite='full', discovered=None):
     return dict(successful=not interrupted and len(results) == len(planned) and
                 bool(planned) and all(r['successful'] for r in results),
-                interrupted=interrupted, elapsed_seconds=elapsed,
+                interrupted=interrupted, elapsed_seconds=elapsed,suite=suite,
+                modules_excluded=[m for m in (discovered or planned) if m not in set(planned)],
                 modules_planned=len(planned), modules_completed=len(results),
                 tests_run=sum(r['tests_run'] for r in results),
                 failures=sum(r.get('failures', 0) for r in results),
@@ -95,6 +137,9 @@ def final_report(data):
            f"{data['tests_run']} tests; {data['modules_completed']}/{data['modules_planned']} modules; "
            f"{data['failures']} failures; {data['errors']} errors; {data['skipped']} skipped",
            '', 'MODULE RESULTS']
+    if data.get('suite')=='quick':
+        lines.insert(0,'QUICK SUITE ONLY — this is not a full regression result.')
+        lines.insert(1,f"{len(data.get('modules_excluded',[]))} modules intentionally outside the quick selection; none counted as passed.")
     for row in sorted(data['modules'],key=lambda r:r['module']):
         lines.append(f"{'PASS' if row['successful'] else 'FAIL'}  {row['module']} — "
                      f"{row['tests_run']} tests, {row.get('elapsed_seconds',0):.1f}s")
@@ -111,6 +156,15 @@ def final_report(data):
         if not details and row.get('log'):
             try: lines.append(Path(row['log']).read_text(encoding='utf-8',errors='replace')[-12000:])
             except OSError: lines.append('Log unavailable.')
+    if data['modules']:
+        lines+=['','SLOWEST MODULES (wall time)']
+        for row in sorted(data['modules'],key=lambda r:r.get('elapsed_seconds',0),reverse=True)[:10]:
+            lines.append(f"{row.get('elapsed_seconds',0):.1f}s  {row['module']}")
+        timings=[test for row in data['modules'] for test in (row.get('tests') or []) if isinstance(test,dict) and isinstance(test.get('seconds'),(int,float))]
+        if timings:
+            lines+=['','SLOWEST PYTHON TESTS (including setup and cleanup)']
+            for test in sorted(timings,key=lambda t:t['seconds'],reverse=True)[:10]:
+                lines.append(f"{test['seconds']:.3f}s  {test.get('test','unknown')} [{test.get('outcome','unknown')}]")
     return '\n'.join(lines)+'\n'
 
 
@@ -119,6 +173,8 @@ def main(argv=None):
     parser.add_argument('--workers', type=int, default=2, help='Concurrent module processes (default: 2)')
     parser.add_argument('--output', type=Path, default=ROOT/'test-results', help='Parent folder for a new run directory')
     parser.add_argument('--include-ui',action='store_true',help='Also discover test*.cjs files using installed Node.js')
+    parser.add_argument('--suite',choices=('full','quick'),default='full',help='Full regression (default) or curated everyday smoke suite')
+    parser.add_argument('--order',choices=('slow-first','alphabetical'),default='slow-first',help='Module scheduling order (default: slow-first using saved durations)')
     parser.add_argument('--worker', help=argparse.SUPPRESS)
     parser.add_argument('--worker-report', type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
@@ -135,11 +191,18 @@ def main(argv=None):
     if not planned:
         print('ERROR: No test modules were found.', file=sys.stderr)
         return 1
+    discovered=list(planned)
+    try:planned=select_suite(discovered,ROOT,args.suite)
+    except (OSError,ValueError) as error:parser.error(str(error))
+    planned,history=schedule(planned,args.output,order=args.order)
     folder = args.output.resolve()/datetime.now(timezone.utc).strftime('parallel-%Y%m%dT%H%M%S%fZ')
     folder.mkdir(parents=True)
     print(f'{len(planned)} modules; up to {args.workers} workers. Python: {sys.executable}', flush=True)
+    print(('QUICK SUITE ONLY — not a full regression result.' if args.suite=='quick' else 'FULL REGRESSION SUITE'),flush=True)
+    print(f'Scheduling: {args.order}; {len(history)} saved module durations; {len(planned)}/{len(discovered)} discovered modules selected.',flush=True)
     print(f'Per-module logs and reports: {folder}', flush=True)
     (folder/'plan.json').write_text(json.dumps(planned, indent=2)+'\n', encoding='utf-8')
+    (folder/'schedule.json').write_text(json.dumps(dict(suite=args.suite,order=args.order,historical_seconds=history,discovered=discovered),indent=2)+'\n',encoding='utf-8')
     started = time.perf_counter(); next_index = 0; running = []; results = []; interrupted = False
     last_update = started
     try:
@@ -192,10 +255,10 @@ def main(argv=None):
             try: process.wait(timeout=5)
             except subprocess.TimeoutExpired: process.kill(); process.wait()
             stream.close()
-        data = summary(results, planned, time.perf_counter()-started, interrupted)
+        data = summary(results, planned, time.perf_counter()-started, interrupted,suite=args.suite,discovered=discovered)
         (folder/'summary.txt').write_text(final_report(data),encoding='utf-8')
         (folder/'summary.json').write_text(json.dumps(data, indent=2)+'\n', encoding='utf-8')
-    print(f'\n{"PASS" if data["successful"] else "INCOMPLETE / FAIL"}: '
+    print(f'\n{args.suite.upper()} {"PASS" if data["successful"] else "INCOMPLETE / FAIL"}: '
           f'{data["tests_run"]} tests; {data["modules_completed"]}/{data["modules_planned"]} modules; '
           f'{data["failures"]} failures, {data["errors"]} errors, {data["skipped"]} skipped.', flush=True)
     print(final_report(data),flush=True)

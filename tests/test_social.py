@@ -16,10 +16,14 @@ from game import accounts, market, diplomacy, communication, combat, trading
 from game.settlement import account_scope, read_settlement
 from game.simulation import advance_settlement
 from accounts_app import AccountServer
+from tests.fixtures import restore_case_baseline
 
 
 class SocialTests(unittest.TestCase):
     def setUp(self):
+        restore_case_baseline(self,'social',SocialTests.prepare_world)
+
+    def prepare_world(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.path=Path(self.tmp.name)/'social.db';accounts.prepare(self.path)
         self.a=self.player('alpha');self.b=self.player('bravo')
@@ -253,7 +257,7 @@ class SocialHTTPTests(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.path=Path(self.tmp.name)/'http.db';accounts.prepare(self.path)
         self.server=AccountServer(('127.0.0.1',0),self.path,clock=lambda:1000)
-        self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();self.addCleanup(self.stop)
+        self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True);self.thread.start();self.addCleanup(self.stop)
         self.a,self.ta=self.player('alpha');self.b,self.tb=self.player('bravo')
 
     def stop(self):self.server.shutdown();self.server.server_close();self.thread.join()

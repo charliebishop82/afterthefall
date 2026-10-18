@@ -113,6 +113,10 @@ def synchronize(c,state,now):
             from game.population import rebalance
             rebalance(c,read_state(c),now)
             _event(c,state,'wastes_expedition_returned',row['returns_at'],dict(expedition_id=row['expedition_id'],delivered=delivered,discarded=lost))
+            from game.operation_results import expedition_summary
+            from game.social import notify
+            title,summary=expedition_summary(dict(gathered=haul,delivered=delivered,discarded=lost))
+            notify(c,state['settlement']['account_id'],state['season']['season_id'],'expedition_return',f'Expedition #{row["expedition_id"]}: {title}. {summary}',row['returns_at'],'expedition',row['expedition_id'])
         changed=True
     return changed
 

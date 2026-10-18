@@ -7,9 +7,10 @@ shortageNotice.className = 'error'; shortageNotice.setAttribute('role','status')
 clockPanel.after(shortageNotice);
 const updateNotice = document.createElement('span');
 const updatePanels = document.createElement('button');
-updatePanels.type = 'button'; updatePanels.className = 'secondary'; updatePanels.hidden = true;
+updatePanels.type = 'button'; updatePanels.className = 'secondary update-panels-button'; updatePanels.hidden = true;
 updatePanels.textContent = 'Update panels';
-updateNotice.setAttribute('role','status');
+updateNotice.setAttribute('role','status');updateNotice.className='panel-update-notice';
+updatePanels.title='Refresh menus and events. Unsent form entries will reset.';
 connectionStatus.after(updateNotice, updatePanels);
 updatePanels.addEventListener('click', () => {
   // Only this explicit click reloads controls, never a background poll.
@@ -74,6 +75,7 @@ async function refreshSupplies() {
     const response = await fetch('/api/resources', {cache: 'no-store'});
     if (!response.ok) throw new Error('Could not read supplies');
     const state = await response.json();
+    if (state.status === 'catching_up') { window.location.reload(); return; }
     updateResourceAlerts(state.resource_alerts || []);
     window.dispatchEvent(new CustomEvent('map-filter-state',{detail:state.map_filters || {}}));
     shortageNotice.hidden = state.food > 0 && state.water > 0;
@@ -214,6 +216,9 @@ async function refreshSupplies() {
     }
     window.dispatchEvent(new CustomEvent('build-resources', {detail:state.trade_available || state.materials || {}}));
     window.dispatchEvent(new CustomEvent('storage-status', {detail:state.storage_status || {}}));
+    if(state.citizen_portal)window.dispatchEvent(new CustomEvent('citizen-portal',{detail:state.citizen_portal}));
+    if(state.military_portal)window.dispatchEvent(new CustomEvent('military-portal',{detail:state.military_portal}));
+    if(state.operation_results)window.dispatchEvent(new CustomEvent('operation-results',{detail:state.operation_results}));
     for(const [resource,row] of Object.entries(state.storage_status || {})) {
       const cap=document.getElementById('storage-capacity-'+resource);
       if(cap){cap.textContent=['scrap','metal','electronics'].includes(resource)?Number(row.used).toFixed(1)+' / '+row.capacity+' shared':' / '+row.capacity;cap.title=row.description;}
@@ -230,6 +235,7 @@ async function refreshSupplies() {
     const overall = document.getElementById('overall-score');
     if (overall && state.own_score !== undefined) overall.textContent = state.own_score.toFixed(2);
     for (const score of state.scores || []) {
+      if (Number.isFinite(score.processed_at)) setText('score-clock-'+score.settlement_id,new Date(score.processed_at*1000).toISOString().replace('T',' ').slice(0,19));
       for (const category of ['overall', 'population', 'military', 'wealth', 'development']) {
         const cell = document.getElementById(`score-${score.settlement_id}-${category}`);
         if (cell) cell.textContent = score[category].toFixed(2);

@@ -72,7 +72,8 @@ class BotAuditTests(unittest.TestCase):
         target=dict(current,food=20)
         with patch('game.bot_policy.spec',side_effect=lambda state,b,level=None:target if level==2 else current), \
              patch('game.economy.storage',return_value=dict(food=100,water=100,material=300)), \
-             patch('game.population.housing',return_value={'homeless':0}):
+             patch('game.population.housing',return_value={'homeless':0}), \
+             patch('game.bot_recovery.choose_supply',return_value=None):
             decision=choose(state,{'food':{'net':-5},'water':{'net':0}},1,'balanced')
         self.assertEqual(decision['form'],dict(action='upgrade',building_id=2,expected_level=1))
-        self.assertEqual(decision['policy_version'],'expeditions-v5')
+        self.assertEqual(decision['policy_version'],'workforce-v9')

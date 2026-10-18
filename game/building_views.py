@@ -467,6 +467,23 @@ def panels(state, token):
     return placement, hall_controls, cards
 
 
+
+MAP_PURPOSES={
+    'Food':('Food','#7fae74','F'), 'Water':('Water','#77a9cd','W'),
+    'Oxygen':('Oxygen','#63b6ac','O'), 'Electricity':('Electricity','#d6b55f','E'),
+    'Industry':('Industry','#c89361','I'), 'Housing':('Housing','#c8bca2','H'),
+    'Drones':('Military','#b37b79','M'), 'Munitions':('Military','#b37b79','M'),
+    'Defense':('Military','#b37b79','M'), 'Storage':('Storage','#9f8ab8','S'),
+    'Support':('Support','#9ba8b4','+')}
+
+
+def map_purpose(info):
+    """Primary purpose only; secondary output and work status do not change it."""
+    category=info.get('category','Support')
+    if category in ('Food Storage','Water Storage','Material Storage'):category='Storage'
+    return MAP_PURPOSES.get(category,MAP_PURPOSES['Support'])
+
+
 def map_additions(state):
     flags=map_filter_flags(state)
     hall = state['buildings'][0]
@@ -484,12 +501,14 @@ def map_additions(state):
             if d['status']=='cleared':continue
             w,h=state['config']['derelicts'][d['derelict_type']]['footprint'];did=d['settlement_derelict_id']
             count=map_staff(state,derelict=did)
-            overlay+=f'<a {filter_attributes("derelict-"+str(did),flags)} href="#derelict-{did}" aria-label="Inspect derelict #{did}"><rect x="{d["origin_x"]}" y="{d["origin_y"]}" width="{w}" height="{h}" fill="#65574e" stroke="#a49b87" stroke-width=".1"/><text x="{d["origin_x"]+w/2}" y="{d["origin_y"]+h/2+.2}" text-anchor="middle" fill="#eee" font-size=".55">R{did}</text>{scavenging_badge(state,did,d["origin_x"],d["origin_y"],w,h)}{staff_badge(count,d["origin_x"]+w/2,d["origin_y"]+h-.2)}<title>{escape(state["config"]["derelicts"][d["derelict_type"]]["name"])}: {count} assigned scavengers</title></a>'
+            overlay+=f'<a {filter_attributes("derelict-"+str(did),flags)} href="#derelict-{did}" aria-label="Inspect derelict #{did}"><rect x="{d["origin_x"]}" y="{d["origin_y"]}" width="{w}" height="{h}" class="map-derelict" fill="#65574e" stroke="#a49b87" stroke-dasharray=".22 .14" stroke-width=".1"/><text x="{d["origin_x"]+w/2}" y="{d["origin_y"]+h/2+.2}" text-anchor="middle" fill="#eee" font-size=".55">R{did}</text>{scavenging_badge(state,did,d["origin_x"],d["origin_y"],w,h)}{staff_badge(count,d["origin_x"]+w/2,d["origin_y"]+h-.2)}<title>{escape(state["config"]["derelicts"][d["derelict_type"]]["name"])}: {count} assigned scavengers</title></a>'
     for b in state['buildings'][1:]:
         if b['status'] in ('cleared', 'demolished'):
             continue
         w, h = footprint(state, b)
-        color = '#95685b' if b['status']=='ruined' else '#b39158' if b['status'] in ('construction', 'upgrading') else '#6c966d'
+        purpose,color,symbol=map_purpose(rules(state)['buildings'][b['building_type']])
+        shape_class='map-derelict' if b['status']=='ruined' else 'map-construction' if b['status'] in ('construction','upgrading') else 'map-complete'
+        if b['status']=='ruined':color='#65574e'
         name = rules(state)['buildings'][b['building_type']]['name']
         if b['building_type'] in ('guard_post','automated_turret','anti_air_turret') and b['status']=='active':
             r=spec(state,b)['defense_radius']
@@ -499,6 +518,6 @@ def map_additions(state):
         marker=staff_badge(count,b['origin_x']+w/2,b['origin_y']+h-.2) if show_staff else ''
         staff_description=f'{count} assigned citizens' if show_staff else 'No operating staff required'
         anchor='ruin' if b['status']=='ruined' else 'building'
-        overlay += f'<a {filter_attributes(anchor+"-"+str(b["building_id"]),flags)} href="#{anchor}-{b["building_id"]}" aria-label="Inspect {name} #{b["building_id"]}"><rect x="{b["origin_x"]}" y="{b["origin_y"]}" width="{w}" height="{h}" fill="{color}" stroke="#e0d7b9" stroke-width=".12"/><text x="{b["origin_x"]+w/2}" y="{b["origin_y"]+h/2+.2}" text-anchor="middle" font-size=".65" fill="#111">{b["building_id"]} L{b["level"]}</text>{map_job_badge(state,b["building_id"],b["origin_x"]+w/2,b["origin_y"]+.5,h)}{marker}<title>{name}, level {b["level"]}, {b["status"]}, {staff_description}</title></a>'
+        overlay += f'<a {filter_attributes(anchor+"-"+str(b["building_id"]),flags)} href="#{anchor}-{b["building_id"]}" aria-label="Inspect {name} #{b["building_id"]}" data-purpose="{purpose}"><rect class="{shape_class}" x="{b["origin_x"]}" y="{b["origin_y"]}" width="{w}" height="{h}" fill="{color}" stroke="#e0d7b9" stroke-width=".12"/><text x="{b["origin_x"]+w/2}" y="{b["origin_y"]+h/2+.2}" text-anchor="middle" font-size=".65" fill="#111">{b["building_id"]} L{b["level"]}</text>{map_job_badge(state,b["building_id"],b["origin_x"]+w/2,b["origin_y"]+.5,h)}{marker}<text x="{b["origin_x"]+.12}" y="{b["origin_y"]+.3}" font-size=".26" fill="#182019" pointer-events="none">{symbol}</text><title>{name}, {purpose}, level {b["level"]}, {b["status"]}, {staff_description}</title></a>'
     overlay += '<rect id="placement-preview" x="21" y="18" width="2" height="2" fill="#d5bc7a" fill-opacity=".18" stroke="#ecd79f" stroke-width=".14" pointer-events="none"/>'
     return overlay

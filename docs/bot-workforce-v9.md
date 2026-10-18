@@ -1,0 +1,13 @@
+# Bot workforce policy v9
+
+2026-10-18. Bot planning only; player rules, prices, jobs and simulation math are unchanged. Logs identify policy_version=workforce-v9.
+
+Additional project workers: after essential staffing and supply rescue, evaluate idle healthy home citizens against an already staffed, safely reachable construction/upgrade/repair project. Compare the ordinary job speed before and after the proposed assignment. Submit a normal builder/repairer action only if speed improves by more than 0.05. Preserve the last emergency operator if Food/Water stock is below two hours of consumption and declining. Job speed includes the normal diminishing crew returns, worker productivity and existing bonuses. The helper never writes predicted state.
+
+Adaptive reserve: the normal reserve is one worker (two for scavengers awaiting expeditions). An active project or a Food/Water deficit removes the discretionary idle reserve. At Town Hall 1, if a required opening material is missing by more than one hour of current net inflow, the spare worker may scavenge rather than sit idle. Scavengers with an expedition already away keep one reserve rather than two. The reserve does not cancel existing work or strip essential production staff automatically.
+
+Town Hall preflight: before paying for a Town Hall upgrade, calculate resource rates with its current building marked upgrading. Estimate construction duration using the next-level work time and the first available builder's current productivity, conservatively ignoring extra future builders/bonuses. Require Food and Water stock to cover projected depletion plus two hours of normal consumption (minimum five units). Buy missing provisions through the ordinary market, seek an additional eligible producer, or log the exact buffer shortfall and wait. Existing paid upgrades are not cancelled. Forecasts do not guarantee unchanged health, workers or combat conditions.
+
+Idle project messages now include job ID and completion percentage where no further eligible action was found. Actual project progress remains authoritative; virtual planning never advances time, grants resources, or submits more than one action per decision.
+
+Five new focused tests cover adaptive reserves, beneficial/harmful extra builders, emergency staff preservation, buffer arithmetic and market-first upgrade preparation. Existing policy tests retain their assertions and isolate the new forecast layer where appropriate. Full test discovery automatically includes test_bot_workforce.py. Python syntax checks only; tests not run. Restart run_bots.py with the same database and game URL after installation. Player server need not restart; restart admin tools only to refresh the behavior description.

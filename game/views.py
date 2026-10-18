@@ -1,6 +1,7 @@
 """Small, escaped server-rendered pages; no frontend framework required."""
 
 from collections import Counter
+import json
 from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
@@ -61,7 +62,8 @@ def render_page(state, token, error='', name='New Avalon'):
                      f'<strong id="ground-defense">{defense["total"]:.1f}</strong><small>local · Town Hall</small></div>')
         from game.progression import enabled as progression_enabled
         name_counts=Counter(c['name'] for c in state['citizens'])
-        citizens = ''.join(f'<tr data-citizen-id="{c["citizen_id"]}"><th scope="row">' + escape(c['name']) + (f' <small>#{c["citizen_id"]}</small>' if name_counts[c['name']] > 1 else '') + '</th>'
+        from game.citizen_portal import data as citizen_card_data
+        citizens = ''.join(f'<tr data-citizen-id="{c["citizen_id"]}" data-citizen-card="{escape(json.dumps(citizen_card_data(state,c)),quote=True)}"><th scope="row">' + escape(c['name']) + (f' <small>#{c["citizen_id"]}</small>' if name_counts[c['name']] > 1 else '') + '</th>'
                            f'<td>{c["level"]}{("<br><small>"+format(c["xp"],".2f")+" XP</small>") if progression_enabled(state) else ""}</td><td>{c["current_hp"]:g} HP</td>'
                            '<td>'+escape(c['sex'].title())+'</td>'
                            + f'<td><span class="role {"assigned" if c["assignment"] == "administrator" else ""}">'
@@ -128,7 +130,8 @@ def render_page(state, token, error='', name='New Avalon'):
                            oxygen=f'{spec(state,hall)["oxygen_output"]:g}')
         content=content.replace('<section class="resources"',f'<section class="resources" data-settlement="{state["settlement"]["settlement_id"]}"',1)
         if config['version'] in ('prototype_v7','prototype_v8','prototype_v9','prototype_v10','prototype_v11','prototype_v12','prototype_v13'):
-            content+='<section class="production-panel" aria-label="Citizen progression"><div class="building-controls"><h2>Citizen progression</h2><p>Productive work earns 1 XP per equivalent hour; construction earns 2. Stalled and idle work earns none. XP updates once per simulated minute. Citizens level automatically up to level 10, increasing maximum health and level-based productivity.</p></div></section>'
+            from game.progression_views import panel as progression_panel
+            content+=progression_panel(state)
         if config['version'] in ('prototype_v6','prototype_v7','prototype_v8','prototype_v9','prototype_v10','prototype_v11','prototype_v12','prototype_v13'):
             from game.recovery import eligibility
             reasons=eligibility(state)

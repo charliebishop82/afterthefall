@@ -26,7 +26,7 @@ class RenewableOpeningTests(unittest.TestCase):
      for x in range(12,26):
       for y in range(12,26):
        candidate=dict(building_type=kind,origin_x=x,origin_y=y,rotation=0,level=1)
-       if buildings.coverage(s,candidate)<.75:continue
+       if buildings.coverage(s,candidate)<s['config']['construction']['coverage_fraction']:continue
        try:
         with closing(connect_database(path)) as c:buildings.validate_placement(c,s,candidate)
        except ValueError:continue

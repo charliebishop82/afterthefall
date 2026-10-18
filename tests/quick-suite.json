@@ -1,0 +1,16 @@
+[
+  "test_database.py",
+  "test_accounts.py",
+  "test_flask_playtest.py",
+  "test_request_clock_order.py",
+  "test_production_storage.py",
+  "test_market_pool.py",
+  "test_market_reserve.py",
+  "test_equipment_market.py",
+  "test_bot_market.py",
+  "test_bot_combat.py",
+  "test_parallel_runner.py",
+  "test_background_progress.py",
+  "test_live_values.py",
+  "test_resource_alerts.py"
+]

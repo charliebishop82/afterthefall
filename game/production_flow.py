@@ -130,3 +130,22 @@ def supply_flow(state, utility, loot, store, hall_outputs, consumption, protecte
                 if ratio < 1:
                     status['reason'] = 'Output storage is full' if ratio == 0 else 'Limited by output storage'
     utility['hall_work_fraction'] = max(hall_fractions, default=1)
+
+
+def input_retry(state, rates, statuses):
+    """Retry only when arriving material can feed the waiting converter.
+
+    An empty Scrap pool must not force one-second steps forever when an
+    Electronics Fabricator is waiting for Metal and no Metal is arriving.
+    Resource depletion, work, health, XP and other boundaries still apply.
+    """
+    from game.buildings import spec
+    for building in state['buildings'][1:]:
+        status=statuses.get(building['building_id'],{})
+        if status.get('reason')!='Waiting for input materials':
+            continue
+        settings=spec(state,building)
+        if any(settings.get(r+'_input',0)>0 and available(state,r)<=1e-8
+               and rates[r]['production']>0 for r in ('scrap','metal')):
+            return True
+    return False

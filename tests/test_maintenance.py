@@ -2,18 +2,23 @@
 import json
 import shutil
 import unittest
-from tests.fixtures import SupportWorld
+from tests.fixtures import SupportWorld,baseline_world
 from game import maintenance,building_management,drones
 from game.buildings import spec,job_speed
 from game.settlement import account_scope,load_config,read_settlement
 from game.views import render_page
 
 
+def maintenance_baseline(owner):
+    world=SupportWorld(owner)
+    world.change('enable_maintenance')
+    world.config=load_config('prototype_v11')
+    return world
+
+
 class MaintenanceTests(unittest.TestCase):
     def setUp(self):
-        self.w=SupportWorld(self)
-        self.w.change('enable_maintenance')
-        self.w.config=load_config('prototype_v11')
+        self.w=baseline_world(self,'maintenance',maintenance_baseline)
 
     def shop(self):
         bid=self.w.build('engineering_workshop',x=21,y=18)

@@ -87,7 +87,7 @@ def inspect_player(path,sid):
     html+='<section class="operator-card"><h3>Buildings</h3><ul>'
     html+=''.join(f'<li>#{b["building_id"]} {escape(b["building_type"].replace("_"," "))} · level {b["level"]} · {escape(b["status"])} · {b["current_hp"]:g} HP</li>' for b in state['buildings'])+'</ul></section></div>'
     html+=f'<div class="operator-links"><a href="/logs?settlement={sid}">Game events</a><a href="/player-logs?account={row["account_id"]}">Player requests</a><a href="/controls?section=corrections">Corrections</a></div>'
-    return html+'<script src="/static/map-zoom.js" defer></script>'
+    return html+inspection_activity(path,sid)+'<script src="/static/map-zoom.js" defer></script>'
 
 
 def request_table(records):
@@ -96,3 +96,25 @@ def request_table(records):
         details=escape(json.dumps(r,indent=2))
         html+=f'<tr><td>{escape(str(r.get("timestamp_utc","—")))}</td><td>{escape(str(r.get("account_id","—")))}</td><td>{escape(str(r.get("method","")))} {escape(str(r.get("route","")))}<br>{escape(str(r.get("action") or r.get("event","")))}</td><td>{escape(str(r.get("status","Started")))}<br>{escape(str(r.get("error_code") or r.get("outcome","")))}</td><td><details><summary>{escape(str(r.get("request_id",""))[:12])}…</summary><pre>{details}</pre></details></td></tr>'
     return html+'</tbody></table></div>'+('' if records else '<p>No matching requests in this file.</p>')
+
+
+def inspection_activity(path,sid):
+    """Bounded saved records only: no commands, migrations or simulation."""
+    sections=(('Expeditions','waste_expeditions'),('Equipment','military_units'),
+              ('Ammunition','military_inventory'),('Work and manufacturing','settlement_jobs'),
+              ('Equipment market history','equipment_market_trades'),('Daily resource purchases','market_reserve_purchases'))
+    html='<h3>Saved activity and equipment</h3><p>Newest 50 records per section; times are saved Unix timestamps. Refresh to see newly committed activity.</p>'
+    with snapshot(path) as c:
+        tables={r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        for title,table in sections:
+            if table not in tables:continue
+            rows=c.execute('SELECT * FROM '+table+' WHERE settlement_id=? ORDER BY rowid DESC LIMIT 50',(sid,)).fetchall()
+            html+='<details class="operator-card"><summary>'+escape(title)+' ('+str(len(rows))+')</summary>'
+            if rows:
+                columns=rows[0].keys()
+                html+='<div class="table-scroll"><table><thead><tr>'+''.join('<th>'+escape(k.replace('_',' '))+'</th>' for k in columns)+'</tr></thead><tbody>'
+                html+=''.join('<tr>'+''.join('<td>'+escape(str(row[k]) if row[k] is not None else '—')+'</td>' for k in columns)+'</tr>' for row in rows)
+                html+='</tbody></table></div>'
+            else:html+='<p>No saved records.</p>'
+            html+='</details>'
+    return html

@@ -145,7 +145,7 @@ class AdminHTTPTests(unittest.TestCase):
         self.player = accounts.register(self.path, 'player', 'player-password-long', 1000)
         admin.grant(self.path, 'owner', 1000)
         self.server = AccountServer(('127.0.0.1', 0), self.path, clock=lambda:1000, allowed_hosts=['192.168.1.25'])
-        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True); self.thread.start(); self.addCleanup(self.stop)
+        self.thread = threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01}, daemon=True); self.thread.start(); self.addCleanup(self.stop)
 
     def stop(self):
         self.server.shutdown(); self.server.server_close(); self.thread.join()

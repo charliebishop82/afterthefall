@@ -21,7 +21,7 @@ unchanged. The repeated capacities in House/Apartment levels are intentional.
 
 Usable capacity rounds down after scaling by building condition. Construction
 adds no capacity; upgrades retain the current completed level's capacity.
-Housing requires at least 75% Oxygen coverage and its configured Oxygen supply.
+Housing requires at least 50% Oxygen coverage and its configured Oxygen supply.
 Housing takes priority ahead of Water/Food and industry during a shortage.
 Optional Electricity does not remove housing capacity. Town Hall housing also
 requires an operating Oxygen zone and scales with its HP.

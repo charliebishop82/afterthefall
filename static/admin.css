@@ -20,3 +20,6 @@
 .operator-app [hidden] { display:none !important; }
 .operator-app .map-controls button { width:32px; padding:0; }
 @media(max-width:600px) { .operator-heading { display:block; }.operator-app form > label { flex-basis:100%; } }
+
+.operator-app .map-derelict {stroke-dasharray:.22 .14;fill-opacity:.62;}
+.operator-app .map-construction {stroke-dasharray:.08 .08;fill-opacity:.65;}

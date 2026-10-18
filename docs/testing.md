@@ -37,9 +37,9 @@ server restarts and the default division of work.
 
 
 
-All test modules live in the project `tests/` directory (currently 38 test modules and
+All test modules live in the project `tests/` directory. The current runner report
 
-617 tests). They use temporary saves. Some checks also read the workbook in
+is authoritative for executed test counts; dated reviews record source inventories. They use temporary saves. Some checks also read the workbook in
 
 `sources/`; keep the read-only references beside the code when copying the project.
 
@@ -1699,3 +1699,87 @@ is needed. Use the existing matching --log-file/--player-log-file if customized.
 Owner observation: run normal play/bots for 10–15 minutes, then review Admin →
 Performance. Logging adds no gameplay changes and no new database writes.
 New regression tests join automatic discovery; Codex did not run tests/servers.
+
+
+## Citizen board draft (owner validation pending)
+Citizens now includes a visual board above the unchanged detailed roster. Cards
+show initials, name/ID, level, health/morale bars, assignment and Captured/Injured
+badges. Filters: All/Free/Working/Away/Injured; sorts: Name/lowest Health/lowest
+Morale/highest Level. Selecting a card opens an inspector with XP, health, morale,
+assignment, expedition return estimate and context links to existing controls.
+Links navigate only: choose the citizen and confirm in the original manual form.
+No new action endpoints or automatic assignments. Card data uses the existing
+initial page and resource poll; no extra polling loop. All labels use escaped
+server JSON/textContent. Original roster IDs and live update hooks are preserved.
+Restart game/admin with the same save and refresh. Python/optional Node UI tests
+join automatic parallel discovery. Codex ran no tests, servers or playtests.
+Military portal work remains a later increment after reviewing this draft.
+
+
+## Military portal draft (owner validation pending)
+Military now starts with a visual dashboard: equipment cards and All/Ready/
+Deployed/Damaged filters; click equipment to inspect individual IDs, status, HP
+and home-building links. Counters show eligible citizen raiders, remaining attack
+allowance, home citizens and patrol/guard assignments. Ready inventory requires
+existing availability, health and operational-home rules; stored/deployed stock
+is shown separately. Production queues, raids and named expeditions update
+through the existing resource poll. Quick links open production, combat,
+expeditions, defense assignments and maintenance. All original manual forms stay
+underneath/on their existing pages; no alternate actions or gameplay changes.
+Restart game/admin and refresh using the same save. New Python/optional Node
+regressions join automatic discovery. Codex ran no tests or browser playtests.
+
+
+## Test optimization handoff — October 17, 2026
+
+The parallel runner now starts historically slower modules first, using available
+saved reports in the chosen output directory. Unknown modules use the median
+known duration (or a one-second neutral estimate without history). This changes
+scheduling only: every discovered module still runs in its own process.
+Use `--order alphabetical` to restore the previous scheduling order. New run
+folders record schedule.json alongside the existing plan, logs and summaries.
+The final text report also lists slow modules and individual Python tests.
+
+Disposable HTTP fixtures use a shorter shutdown polling interval. Flask helpers
+and equipment helpers now live in plain fixture classes in tests/fixtures.py;
+equipment tests seed accounts instead of repeating unrelated password hashing.
+Real registration/login/security tests keep their production hashing and routes.
+Every gameplay test still uses an independent temporary database; no tests or
+assertions were deleted, and known failures were not skipped or reclassified.
+
+Codex did not run the tests. After these changes, run the same full suite and
+worker count as before to compare results and timings:
+
+    python -X utf8 run_tests_parallel.py --workers 2
+
+Add --include-ui for the Node UI tests if Node.js is installed. A focused run
+does not replace a full-suite result. See ../TEST_SUITE_REVIEW.md for the review.
+
+
+## Everyday quick checks and complete regression checks
+
+For a smaller routine smoke run:
+
+    python -X utf8 run_tests_parallel.py --suite quick --workers 2
+
+For the full suite (still the default, with automatic discovery of new tests):
+
+    python -X utf8 run_tests_parallel.py --suite full --workers 2
+
+Add --include-ui to either command to include every discovered Node UI module.
+The quick selection is explicitly maintained in tests/quick-suite.json; missing
+or duplicate manifest entries are errors. It covers database constraints,
+authentication and Flask forms, clock ordering, production/storage boundaries,
+markets, basic bot decisions, diagnostics and key live displays. It intentionally
+does not include all combat resolutions, long offline comparisons or legacy
+catalogue sweeps. Add the focused feature module when working on those areas.
+
+Quick output and JSON explicitly identify the suite and excluded modules. A quick
+pass is not a full regression pass. Run the full suite before a playtest release
+and after changes to shared simulation, persistence, combat or account rules.
+Old failing tests remain in the full suite; none were deleted or marked skipped.
+Known failures in selected quick modules will still fail the quick run.
+
+Configuration-only Garden/catalogue cases now avoid unnecessary world setup.
+Other cases still get fresh independent worlds on first use. No tests were run
+by Codex; runtime savings remain to be measured by the owner.

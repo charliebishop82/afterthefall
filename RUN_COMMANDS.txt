@@ -1,0 +1,78 @@
+AFTER THE FALL - RUN COMMANDS
+=============================
+Use an Anaconda Prompt or a terminal with Conda available.
+Keep the game, admin tools, and bots in separate terminal windows.
+
+IN EVERY NEW TERMINAL
+---------------------
+conda activate settlement-game
+cd "C:\Users\charl\OneDrive\Desktop\multiplayer war game"
+
+GAME SERVER - WINDOW 1
+----------------------
+python -X utf8 serve_game.py --database database/playtest-fresh-01.db --port 8767
+
+Open: http://127.0.0.1:8767/
+Background settlement updates start automatically without a player login.
+The configured 48-hour offline simulation cap remains enabled.
+Run only one game server for this database.
+
+ADMIN TOOLS - WINDOW 2
+---------------------
+python -X utf8 admin_suite.py --database database/playtest-fresh-01.db --port 8768
+
+Open: http://127.0.0.1:8768/
+Use the same database as the game server.
+
+BOT CONTROLLER - WINDOW 3
+-------------------------
+python -X utf8 run_bots.py --database database/playtest-fresh-01.db --game-url http://127.0.0.1:8767
+
+Start the game server first. Create and enable bots through the admin tools.
+The bot runner chooses actions; the server handles settlement simulation.
+Run only one bot controller for this database.
+
+TESTS - SEPARATE WINDOW
+----------------------
+Python tests, with two test modules running at a time:
+python -X utf8 run_tests_parallel.py --workers 2
+
+Python and UI tests, with four test modules running at a time:
+python -X utf8 run_tests_parallel.py --workers 4 --include-ui
+
+The UI tests require Node.js available in this terminal.
+Increase or decrease --workers to suit your machine.
+Results, individual logs, and overall summaries are saved under test-results.
+Tests use their own temporary databases; do not point them at your game save.
+
+OPTIONAL: INSTALL PYTHON REQUIREMENTS
+------------------------------------
+With settlement-game activated and the project directory selected:
+python -m pip install -r requirements.txt
+
+OPTIONAL: START WITHOUT THE BACKGROUND SIMULATION WORKER
+-------------------------------------------------------
+python -X utf8 serve_game.py --database database/playtest-fresh-01.db --port 8767 --no-background-catchup
+
+For troubleshooting only. Player requests can still trigger catch-up.
+This flag does not disable the 48-hour offline cap.
+
+STOPPING AND RESTARTING
+----------------------
+Press Ctrl+C in each terminal to stop its process.
+Restart the relevant processes after code changes.
+Always reuse database/playtest-fresh-01.db to keep this game's accounts and progress.
+These launch commands do not reset or wipe an existing database.
+A different database filename may create a separate, fresh game.
+
+
+SMALLER EVERYDAY CHECKS (NOT A FULL REGRESSION PASS)
+--------------------------------------------------
+python -X utf8 run_tests_parallel.py --suite quick --workers 2
+
+EXPLICIT FULL REGRESSION RUN (ALSO THE DEFAULT)
+----------------------------------------------
+python -X utf8 run_tests_parallel.py --suite full --workers 2
+
+Add --include-ui to either command if Node.js is available.
+Use the full suite for shared simulation/combat/save changes and playtest releases.

@@ -115,9 +115,9 @@
           "workers": 1.0,
           "minutes": 120.0,
           "hp": 1400.0,
-          "scrap": 250.0,
-          "metal": 120.0,
-          "electronics": 10.0,
+          "scrap": 150.0,
+          "metal": 50.0,
+          "electronics": 5.0,
           "food": 3.0,
           "water": 3.0,
           "food_storage": 225.0,
@@ -3482,12 +3482,273 @@
           "defense_strength": 50.0
         }
       ]
+    },
+    "starter_offensive_hangar": {
+      "name": "Small Offensive Drone Hangar",
+      "category": "Drones",
+      "unlock": 1,
+      "footprint": [
+        1,
+        1
+      ],
+      "max_level": 1,
+      "workers_min": 0,
+      "oxygen_required": false,
+      "electricity_required": false,
+      "levels": [
+        {
+          "workers": 0.0,
+          "minutes": 10.0,
+          "hp": 150.0,
+          "scrap": 25.0,
+          "metal": 10.0,
+          "electronics": 0.0,
+          "food": 0.0,
+          "water": 0.0,
+          "food_storage": 0.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 0.0,
+          "scrap_input": 0.0,
+          "metal_input": 0.0,
+          "metal_output": 0.0,
+          "electronics_output": 0.0,
+          "drone_capacity": 1.0,
+          "repair_drone_capacity": 0.0,
+          "munition_capacity": 0.0,
+          "production_bonus": 0.0
+        }
+      ]
+    },
+    "starter_air_defense_bay": {
+      "name": "Small Air Defense Bay",
+      "category": "Drones",
+      "unlock": 1,
+      "footprint": [
+        1,
+        1
+      ],
+      "max_level": 1,
+      "workers_min": 0,
+      "oxygen_required": false,
+      "electricity_required": false,
+      "levels": [
+        {
+          "workers": 0.0,
+          "minutes": 10.0,
+          "hp": 150.0,
+          "scrap": 25.0,
+          "metal": 10.0,
+          "electronics": 0.0,
+          "food": 0.0,
+          "water": 0.0,
+          "food_storage": 0.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 0.0,
+          "scrap_input": 0.0,
+          "metal_input": 0.0,
+          "metal_output": 0.0,
+          "electronics_output": 0.0,
+          "drone_capacity": 1.0,
+          "repair_drone_capacity": 0.0,
+          "munition_capacity": 0.0,
+          "production_bonus": 0.0
+        }
+      ]
+    },
+    "starter_ground_defense_bay": {
+      "name": "Small Ground Defense Bay",
+      "category": "Drones",
+      "unlock": 1,
+      "footprint": [
+        1,
+        1
+      ],
+      "max_level": 1,
+      "workers_min": 0,
+      "oxygen_required": false,
+      "electricity_required": false,
+      "levels": [
+        {
+          "workers": 0.0,
+          "minutes": 10.0,
+          "hp": 150.0,
+          "scrap": 25.0,
+          "metal": 10.0,
+          "electronics": 0.0,
+          "food": 0.0,
+          "water": 0.0,
+          "food_storage": 0.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 0.0,
+          "scrap_input": 0.0,
+          "metal_input": 0.0,
+          "metal_output": 0.0,
+          "electronics_output": 0.0,
+          "drone_capacity": 1.0,
+          "repair_drone_capacity": 0.0,
+          "munition_capacity": 0.0,
+          "production_bonus": 0.0
+        }
+      ]
+    },
+    "starter_engineering_workshop": {
+      "name": "Small Engineering Workshop",
+      "category": "Support",
+      "unlock": 1,
+      "footprint": [
+        1,
+        1
+      ],
+      "max_level": 1,
+      "workers_min": 1,
+      "oxygen_required": true,
+      "electricity_required": false,
+      "levels": [
+        {
+          "workers": 1.0,
+          "minutes": 10.0,
+          "hp": 150.0,
+          "scrap": 25.0,
+          "metal": 10.0,
+          "electronics": 0.0,
+          "food": 0.0,
+          "water": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "morale": 0.0,
+          "healing_bonus": 0.0,
+          "treatment_capacity": 0.0,
+          "construction_bonus": 0.0,
+          "scavenge_bonus": 0.0,
+          "salvage_bonus": 0.0,
+          "market_fee_reduction": 0.0,
+          "defense_radius": 0.0,
+          "defense_strength": 0.0,
+          "drone_capacity": 0.0,
+          "repair_drone_capacity": 1.0,
+          "munition_capacity": 0.0,
+          "production_bonus": 0.0,
+          "food_storage": 0.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 1.0,
+          "oxygen_output": 0.0,
+          "scrap_input": 0.0,
+          "metal_input": 0.0,
+          "metal_output": 0.0,
+          "electronics_output": 0.0
+        }
+      ]
+    },
+    "starter_missile_silo": {
+      "name": "Small Missile Silo",
+      "category": "Munitions",
+      "unlock": 1,
+      "footprint": [
+        1,
+        1
+      ],
+      "max_level": 1,
+      "workers_min": 0,
+      "oxygen_required": false,
+      "electricity_required": false,
+      "levels": [
+        {
+          "workers": 0.0,
+          "minutes": 10.0,
+          "hp": 150.0,
+          "scrap": 25.0,
+          "metal": 10.0,
+          "electronics": 0.0,
+          "food": 0.0,
+          "water": 0.0,
+          "food_storage": 0.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 0.0,
+          "scrap_input": 0.0,
+          "metal_input": 0.0,
+          "metal_output": 0.0,
+          "electronics_output": 0.0,
+          "drone_capacity": 0.0,
+          "repair_drone_capacity": 0.0,
+          "munition_capacity": 2.0,
+          "production_bonus": 0.0
+        }
+      ]
+    },
+    "starter_interceptor_battery": {
+      "name": "Small Interceptor Battery",
+      "category": "Munitions",
+      "unlock": 1,
+      "footprint": [
+        1,
+        1
+      ],
+      "max_level": 1,
+      "workers_min": 0,
+      "oxygen_required": false,
+      "electricity_required": false,
+      "levels": [
+        {
+          "workers": 0.0,
+          "minutes": 10.0,
+          "hp": 150.0,
+          "scrap": 25.0,
+          "metal": 10.0,
+          "electronics": 0.0,
+          "food": 0.0,
+          "water": 0.0,
+          "food_storage": 0.0,
+          "water_storage": 0.0,
+          "material_storage": 0.0,
+          "housing": 0.0,
+          "radius": 0.0,
+          "electricity_demand": 0.0,
+          "electricity_output": 0.0,
+          "oxygen_demand": 0.0,
+          "oxygen_output": 0.0,
+          "scrap_input": 0.0,
+          "metal_input": 0.0,
+          "metal_output": 0.0,
+          "electronics_output": 0.0,
+          "drone_capacity": 0.0,
+          "repair_drone_capacity": 0.0,
+          "munition_capacity": 2.0,
+          "production_bonus": 0.0
+        }
+      ]
     }
   },
   "construction": {
     "worker_exponent": 0.5,
     "town_hall_upgrade_productivity": 0.5,
-    "coverage_fraction": 0.75,
+    "coverage_fraction": 0.5,
     "shutdown_condition": 0.25,
     "cold_storage_unpowered_fraction": 0.25
   },
@@ -3846,7 +4107,8 @@
       "storage": "offensive_hangar",
       "factory": "drone_factory",
       "strength": 30.0,
-      "loot": 20.0
+      "loot": 20.0,
+      "starter_storage": "starter_offensive_hangar"
     },
     "air_defense_drone": {
       "name": "Air Defense Drone",
@@ -3858,7 +4120,8 @@
       "storage": "air_defense_bay",
       "factory": "drone_factory",
       "strength": 28.0,
-      "loot": 0.0
+      "loot": 0.0,
+      "starter_storage": "starter_air_defense_bay"
     },
     "ground_defense_drone": {
       "name": "Ground Defense Drone",
@@ -3870,7 +4133,8 @@
       "storage": "ground_defense_bay",
       "factory": "drone_factory",
       "strength": 25.0,
-      "loot": 0.0
+      "loot": 0.0,
+      "starter_storage": "starter_ground_defense_bay"
     },
     "repair_drone": {
       "name": "Repair Drone",
@@ -3882,7 +4146,8 @@
       "storage": "engineering_workshop",
       "factory": "drone_factory",
       "strength": 0.0,
-      "loot": 0.0
+      "loot": 0.0,
+      "starter_storage": "starter_engineering_workshop"
     },
     "missile": {
       "name": "Missile",
@@ -3894,7 +4159,8 @@
       "storage": "missile_silo",
       "factory": "munitions_factory",
       "strength": 300.0,
-      "loot": 0.0
+      "loot": 0.0,
+      "starter_storage": "starter_missile_silo"
     },
     "interceptor": {
       "name": "Interceptor",
@@ -3906,7 +4172,8 @@
       "storage": "interceptor_battery",
       "factory": "munitions_factory",
       "strength": 0.0,
-      "loot": 0.0
+      "loot": 0.0,
+      "starter_storage": "starter_interceptor_battery"
     }
   },
   "support": {

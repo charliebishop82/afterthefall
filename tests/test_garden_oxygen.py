@@ -5,9 +5,13 @@ from game.economy import utilities
 from tests.fixtures import SupportWorld,fixed_map_seed
 
 class GardenOxygenTests(unittest.TestCase):
-    def setUp(self):
-        with fixed_map_seed():self.w=SupportWorld(self)
-        self.w.change('enable_consequences')
+    @property
+    def w(self):
+        if not hasattr(self,'_world'):
+            with fixed_map_seed():world=SupportWorld(self)
+            world.change('enable_consequences')
+            self._world=world
+        return self._world
     def test_current_catalogue_and_legacy_profile_are_distinct(self):
         info=load_config('prototype_v13')['buildings']['garden'];s=info['levels'][0]
         self.assertFalse(info['oxygen_required']);self.assertFalse(info['electricity_required'])

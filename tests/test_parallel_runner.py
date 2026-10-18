@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from run_tests_parallel import modules, read_result, summary, final_report, ui_result
+from run_tests_parallel import modules, read_result, summary, final_report, ui_result, schedule, select_suite
 
 
 class ParallelRunnerTests(unittest.TestCase):
@@ -12,6 +12,64 @@ class ParallelRunnerTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
+
+    def test_quick_selection_is_explicit_and_full_keeps_new_modules(self):
+        tests=self.root/'tests';tests.mkdir()
+        (tests/'quick-suite.json').write_text('["one.py"]',encoding='utf-8')
+        discovered=['one.py','new.py','ui.cjs']
+        self.assertEqual(select_suite(discovered,self.root,'full'),discovered)
+        self.assertEqual(select_suite(discovered,self.root,'quick'),['one.py','ui.cjs'])
+
+    def test_bad_quick_manifest_fails_instead_of_dropping_tests_silently(self):
+        tests=self.root/'tests';tests.mkdir()
+        path=tests/'quick-suite.json'
+        for body in ('[]','{}','["one.py","one.py"]','["missing.py"]','[1]'):
+            path.write_text(body,encoding='utf-8')
+            with self.assertRaises(ValueError):select_suite(['one.py'],self.root,'quick')
+
+    def test_quick_report_cannot_be_mistaken_for_a_full_pass(self):
+        data=summary([dict(module='one',successful=True,tests_run=1)],['one'],1,False,suite='quick',discovered=['one','two'])
+        self.assertEqual(data['modules_excluded'],['two'])
+        self.assertTrue(data['successful'])
+        self.assertIn('not a full regression result',final_report(data))
+
+    def history(self,name,rows):
+        folder=self.root/name;folder.mkdir()
+        (folder/'summary.json').write_text(json.dumps({'modules':rows}),encoding='utf-8')
+
+    def test_scheduling_runs_long_modules_first_without_dropping_unknown_modules(self):
+        self.history('parallel-20261017',[dict(module='fast.py',elapsed_seconds=2),dict(module='slow.py',elapsed_seconds=30)])
+        ordered,history=schedule(['fast.py','new.py','slow.py'],self.root)
+        self.assertEqual(ordered,['slow.py','new.py','fast.py'])
+        self.assertEqual(history,{'fast.py':2.0,'slow.py':30.0})
+
+    def test_scheduling_prefers_recent_timings_and_can_restore_alphabetical_order(self):
+        self.history('parallel-20261016',[dict(module='one.py',elapsed_seconds=90)])
+        self.history('parallel-20261017',[dict(module='one.py',elapsed_seconds=1),dict(module='two.py',elapsed_seconds=5)])
+        planned=['one.py','two.py']
+        self.assertEqual(schedule(planned,self.root)[0],['two.py','one.py'])
+        self.assertEqual(schedule(planned,self.root,order='alphabetical'),(planned,{}))
+
+    def test_scheduling_ignores_bad_history_and_uses_alphabetical_fallback(self):
+        self.history('parallel-20261017',[None,dict(module='one.py',elapsed_seconds=-1),dict(module='two.py',elapsed_seconds=True),dict(module='three.py',elapsed_seconds=float('nan')),dict(module='foreign.py',elapsed_seconds=99)])
+        ordered,history=schedule(['two.py','one.py','three.py'],self.root)
+        self.assertEqual(ordered,['one.py','three.py','two.py'])
+        self.assertEqual(history,{})
+        (self.root/'parallel-20261017/summary.json').write_text('broken',encoding='utf-8')
+        self.assertEqual(schedule(['b','a'],self.root)[0],['a','b'])
+
+    def test_scheduling_can_use_finished_workers_from_an_interrupted_run(self):
+        folder=self.root/'parallel-20261017';folder.mkdir()
+        (folder/'001-one.json').write_text(json.dumps(dict(module='one.py',elapsed_seconds=12)),encoding='utf-8')
+        (folder/'plan.json').write_text('["one.py"]',encoding='utf-8')
+        self.assertEqual(schedule(['one.py'],self.root),(['one.py'],{'one.py':12.0}))
+
+    def test_final_report_includes_slow_tests_without_hiding_failures(self):
+        rows=[dict(module='one',successful=False,tests_run=1,elapsed_seconds=8,tests=[dict(test='one.C.case',seconds=7,outcome='failed')])]
+        output=final_report(summary(rows,['one'],8,False))
+        self.assertIn('OVERALL: INCOMPLETE / FAIL',output)
+        self.assertIn('SLOWEST MODULES',output)
+        self.assertIn('7.000s  one.C.case [failed]',output)
 
     def test_discovery_keeps_importable_nested_modules(self):
         tests = self.root/'tests'; tests.mkdir()

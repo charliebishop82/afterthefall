@@ -18,7 +18,8 @@ function scaledViewport(view, factor, bounds) {
   const height=Math.max(Math.min(4,bounds.height),Math.min(bounds.height,view.height*factor));
   return clampViewport({x:view.x+(view.width-width)/2,y:view.y+(view.height-height)/2,width,height},bounds);
 }
-if (typeof module !== 'undefined') module.exports={clampViewport,frameZones,scaledViewport};
+function initialViewport(bounds,inspection,zones){return clampViewport(zones,bounds);}
+if (typeof module !== 'undefined') module.exports={clampViewport,frameZones,scaledViewport,initialViewport};
 if (typeof document !== 'undefined') (() => {
   const container=document.querySelector('.map-scroll');
   const map=container?.querySelector('svg');
@@ -28,12 +29,9 @@ if (typeof document !== 'undefined') (() => {
     width:Number(node.getAttribute('width')),height:Number(node.getAttribute('height'))});
   const hallNode=map.querySelector('a[href="#town-hall"] > rect, g[data-inspection-hall] > rect');
   const oxygen=()=>frameZones([...map.querySelectorAll('.utility-zone,[data-utility="oxygen"]')].map(readRect),bounds);
-  let view=oxygen(), pan=false, drag=null, suppressClick=false;
+  let view=initialViewport(bounds,Boolean(map.dataset.inspectionId),oxygen()), pan=false, drag=null, suppressClick=false;
   const storageKey='map-viewport:'+document.title+(map.dataset.inspectionId || '');
-  try {
-    const saved=JSON.parse(sessionStorage.getItem(storageKey));
-    if (saved && ['x','y','width','height'].every(k=>Number.isFinite(saved[k]))) view=clampViewport(saved,bounds);
-  } catch (_) {}
+  // Always frame current oxygen coverage on load; saved camera positions must not override it.
   const controls=document.createElement('div'); controls.className='map-controls';
   controls.setAttribute('role','group'); controls.setAttribute('aria-label','Map zoom and movement');
   const status=document.createElement('p'); status.className='map-zoom-status';
@@ -103,5 +101,6 @@ if (typeof document !== 'undefined') (() => {
   container.addEventListener('wheel',event=>{
     if (!event.ctrlKey) return;event.preventDefault();zoom(event.deltaY>0 ? 1.25 : .8);
   },{passive:false});
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>render()).observe(container);
   render();
 })();

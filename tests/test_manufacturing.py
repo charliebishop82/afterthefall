@@ -13,10 +13,15 @@ from game import accounts,manufacturing
 from game.buildings import change_building,spec
 from game.settlement import account_scope,read_settlement,load_config
 from game.simulation import advance_settlement
+from tests.fixtures import baseline_world
 
 
 class ManufacturingTests(unittest.TestCase):
     def setUp(self):
+        world=baseline_world(self,'manufacturing',manufacturing_baseline)
+        self.__dict__.update({k:v for k,v in vars(world).items() if k not in ('addCleanup','_testMethodName','_testMethodDoc','_outcome','_cleanups','_subtest','_type_equality_funcs')})
+
+    def prepare_world(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.path=Path(self.tmp.name)/'military.db';accounts.prepare(self.path)
         self.a=self.sql("INSERT INTO accounts(username,password_hash,display_name,created_at) VALUES ('alpha','!','alpha',1000) RETURNING account_id")[0][0]
@@ -232,3 +237,10 @@ class ManufacturingTests(unittest.TestCase):
         state=self.advance(18100)
         factory=next(b for b in state['buildings'] if b['building_id']==bid)
         self.assertEqual((factory['status'],factory['level'],factory['current_hp']),('active',2,1200))
+
+
+def manufacturing_baseline(owner):
+    world=ManufacturingTests('test_offline_and_small_steps_identical')
+    world.addCleanup=owner.addCleanup
+    world.prepare_world()
+    return world

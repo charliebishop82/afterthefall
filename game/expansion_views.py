@@ -15,7 +15,7 @@ def scores(connection, state):
         with account_scope(row[0]):
             current=read_state(connection);sid=current['settlement']['settlement_id']
             result=scoring.totals(current,banking.loans(connection,sid),banking.investments(connection,sid))
-            players.append(dict(result,settlement_id=sid,name=current['settlement']['settlement_name']))
+            players.append(dict(result,settlement_id=sid,name=current['settlement']['settlement_name'],processed_at=current['settlement']['simulation_processed_at']))
     return scoring.rank(players)
 
 
@@ -44,7 +44,7 @@ def panel(path, state, token, now):
         maturity=datetime.fromtimestamp(row['matures_at'],timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
         html+=f'<p>Investment #{row["investment_id"]}: {row["principal"]} Credits principal + {row["accrued_interest"]} earned · {row["daily_rate"]*100:g}% daily · matures {maturity}.</p>'
         html+=social.form(token,'bank','withdraw',social.hidden('investment_id',row['investment_id'])+'<button>Withdraw investment early</button>',f'Withdraw investment {row["investment_id"]}')+'</form>'
-    html+='</section><section class="production-panel" id="rankings"><h2>Season rankings</h2><p>Equal category weights; overall scores are relative to each category leader. Exact ties share rank. Population and development details remain private.</p><table><thead><tr><th>Rank</th><th>Settlement</th><th>Overall</th><th>Population</th><th>Military</th><th>Wealth</th><th>Development</th></tr></thead><tbody>'
+    html+='</section><section class="production-panel" id="rankings"><h2>Season rankings</h2><p>Equal category weights; overall scores are relative to each category leader. Exact ties share rank. Population and development details remain private. These are saved standings; settlements may have different update times. Viewing rankings does not simulate other players.</p><table><thead><tr><th>Rank</th><th>Settlement</th><th>Overall</th><th>Population</th><th>Military</th><th>Wealth</th><th>Development</th><th>Updated (UTC)</th></tr></thead><tbody>'
     for row in rows:
-        html+=f'<tr><td>{row["rank"]}</td><td>{escape(row["name"])}</td>'+''.join(f'<td id="score-{row["settlement_id"]}-{c}">{row[c]:.2f}</td>' for c in ('overall','population','military','wealth','development'))+'</tr>'
+        html+=f'<tr><td>{row["rank"]}</td><td>{escape(row["name"])}</td>'+''.join(f'<td id="score-{row["settlement_id"]}-{c}">{row[c]:.2f}</td>' for c in ('overall','population','military','wealth','development'))+f'<td id="score-clock-{row["settlement_id"]}">{datetime.fromtimestamp(row["processed_at"],timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}</td></tr>'
     return html+'</tbody></table></section>'

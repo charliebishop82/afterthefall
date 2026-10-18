@@ -21,7 +21,8 @@ def revision(path, state, now):
                        [(r['loan_id'],r['outstanding_balance'],r['status']) for r in banking.loans(c,sid)],
                        [(r['investment_id'],r['principal'],r['accrued_interest']) for r in banking.investments(c,sid)]]
             value+=hashlib.sha256(json.dumps(signature,sort_keys=True).encode()).hexdigest()[:16]
-    return value
+    from game.equipment_market import revision as equipment_revision
+    return value+equipment_revision(path,state,now)
 
 
 def scores(path,state):
@@ -42,6 +43,8 @@ def navigation(actor,token):
 def settlement(path,state,actor,token,now):
     from game.views import render_page
     html=render_page(state,token).decode()
+    from game.offline import notice
+    html=html.replace('<main id="main">','<main id="main">'+notice(path,state),1)
     html=html.replace('Assign builders after placing the site, then Start time.','New sites automatically receive one available unassigned citizen when Oxygen coverage is safe. Add more builders if needed.')
     html=re.sub(r'<form method="post" action="/clock">.*?</form>','',html,flags=re.S)
     bar=navigation(actor,token)
@@ -73,6 +76,12 @@ def settlement(path,state,actor,token,now):
     from game.expeditions import panel as expedition_panel
     from game.expeditions import summary as expedition_summary
     panels+=expedition_panel(state,token)+expedition_summary(state)
+    from game.military_portal import payload as military_portal_payload
+    import json
+    overview=military_portal_payload(state);overview['raid_timers']=combat.timers(path,state,now)
+    panels+='<div id="military-portal-data" hidden data-dashboard="'+escape(json.dumps(overview),quote=True)+'"></div>'
+    from game.operation_results import snapshot as operation_snapshot
+    panels+='<div id="operation-results-data" hidden data-results="'+escape(json.dumps(operation_snapshot(path,state)),quote=True)+'"></div>'
     return html.replace('<main id="main">','<main id="main">'+bar).replace('</main>',panels+'</main>')
 
 
@@ -137,8 +146,16 @@ def resources(path,state,now):
     payload['market']=market.public_snapshot(path,state,now)
     from game.expeditions import live as expedition_live
     payload['expeditions']=expedition_live(state)
+    from game.citizen_portal import payload as citizen_portal_payload
+    payload['citizen_portal']=citizen_portal_payload(state)
+    from game.military_portal import payload as military_portal_payload
+    payload['military_portal']=military_portal_payload(state)
+    payload['military_portal']['raid_timers']=payload['raid_timers'] if 'raid_timers' in payload else {}
     payload['raid_timers']=combat.timers(path,state,now)
+    payload['military_portal']['raid_timers']=payload['raid_timers']
     payload['war_timers']=combat.war_timers(path,state,now)
+    from game.operation_results import snapshot as operation_snapshot
+    payload['operation_results']=operation_snapshot(path,state)
     if state.get('expansion'):
         payload['scores']=scores(path,state)
         payload['own_score']=next(r['overall'] for r in payload['scores'] if r['settlement_id']==state['settlement']['settlement_id'])

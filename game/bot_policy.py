@@ -4,7 +4,7 @@ from game.buildings import spec, footprint, coverage, rules
 from game.trading import available
 
 
-POLICY_VERSION='expeditions-v5'
+POLICY_VERSION='workforce-v9'
 
 
 def choose(state, rates, seed, personality='balanced', targets=None, market=None):
@@ -34,12 +34,26 @@ def choose(state, rates, seed, personality='balanced', targets=None, market=None
                 return action('/buildings','Staff a completed production or utility building.',action='worker',building_id=building['building_id'],citizen_id=free[0]['citizen_id'])
     rescue=choose_market(state,rates,seed,action,market,emergency_only=True)
     if rescue:return rescue
+    from game.bot_recovery import choose_supply,release_unsafe
+    recovery=choose_supply(state,rates,free,market,action)
+    if recovery:return recovery
+    recovery=release_unsafe(state,action)
+    if recovery:return recovery
+    from game.bot_strategy import opening_upgrade,military_growth_allowed,expand_scavenging
+    priority=opening_upgrade(state,free,market,seed,action) if all(rates.get(r,{}).get('net',0)>=0 for r in ('food','water')) else None
+    if priority:return priority
+    from game.bot_strategy import staff_active_project
+    staffing=staff_active_project(state,free,rates,action)
+    if staffing:return staffing
+    from game.bot_equipment import choose_equipment
+    funding=choose_equipment(state,rates,market,personality,seed,action,sell_only=True)
+    if funding:return funding
     expedition=choose_expedition(state,rates,seed,personality,action,free)
     if expedition:return expedition
     if state.get('config',{}).get('units') and not any(state['resources'][r]<=0 or rates.get(r,{}).get('net',0)<0 for r in ('food','water')):
-        from game.bot_military import choose_military
+        from game.bot_military import choose_military,combat_decision
         if rng.random()<{'aggressive':.8,'defensive':.7,'balanced':.35,'builder':.2,'scavenger':.1}.get(personality,.35):
-            military=choose_military(state,targets or [],personality,seed,action,free,market)
+            military=(choose_military(state,targets or [],personality,seed,action,free,market,rates=rates) if military_growth_allowed(state) else combat_decision(state,targets or [],personality,seed,action))
             if military:return military
     # Look ahead with one scavenger freed, but submit the normal Release action first.
     if not free:
@@ -82,7 +96,7 @@ def choose(state, rates, seed, personality='balanced', targets=None, market=None
                 if supplies:return supplies
         if not allow_growth:
             # No essential shortage: a scavenger sometimes chooses recovery over expansion.
-            return choose_scavenging(state,free,seed,action)
+            return choose_scavenging(state,free,seed,action,rates,market,personality)
         wanted=[]
         for output in ('food','water','scrap_output','metal_output','electronics_output','oxygen_output','electricity_output'):
             if not any(spec(state,b).get(output,0) for b in producers):
@@ -112,15 +126,23 @@ def choose(state, rates, seed, personality='balanced', targets=None, market=None
         if hall['level']<catalog['town_hall']['max_level']:
             target=spec(state,hall,hall['level']+1)
             if all(available(state,r)>=target[r] for r in ('scrap','metal','electronics')):
+                from game.bot_strategy import town_hall_preparation
+                preparation=town_hall_preparation(state,free,market,seed,action)
+                if preparation:return preparation
                 return action('/buildings','Upgrade Town Hall to unlock infrastructure.',action='upgrade',building_id=hall['building_id'],expected_level=hall['level'])
             supplies=choose_market(state,rates,seed,action,market,costs=target,purpose='the Town Hall upgrade')
             if supplies:return supplies
+    expansion=expand_scavenging(state,free,market,seed,action)
+    if expansion:return expansion
     surplus=choose_market(state,rates,seed,action,market)
     if surplus:return surplus
-    return choose_scavenging(state,free,seed,action)
+    return choose_scavenging(state,free,seed,action,rates,market,personality)
 
 
-def choose_scavenging(state,free,seed,action):
+def choose_scavenging(state,free,seed,action,rates=None,market=None,personality='balanced'):
+    from game.bot_strategy import worker_reserve,reserve_wait_reason
+    if free and len(free)<=worker_reserve(personality,state,rates):
+        return action(None,reserve_wait_reason(state,free,rates,personality))
     if free:
         from game.economy import storage
         material_full=sum(state['resources'][r] for r in ('scrap','metal','electronics'))>=storage(state)['material']-1e-8
@@ -131,4 +153,8 @@ def choose_scavenging(state,free,seed,action):
             count=sum(c['job_id']==j['job_id'] for j in state['jobs'] if j['target_derelict_id']==site['settlement_derelict_id'] and j['status'] in ('active','paused') for c in state['citizens'])
             if count<state['config']['derelicts'][site['derelict_type']]['workers']:
                 return action('/scavenging','Assign an available citizen to safe scavenging.',action='assign',derelict_id=site['settlement_derelict_id'],citizen_id=free[0]['citizen_id'])
-    return action(None,'No useful affordable action is currently available; wait for work or supplies.')
+    from game.bot_recovery import idle_reason
+    reason=idle_reason(state,free,rates,market)
+    if any(j['job_type'] in ('construction','upgrade','repair') and j['status'] in ('active','paused') for j in state.get('jobs',[])):
+        reason+=' '+reserve_wait_reason(state,free,rates,personality)
+    return action(None,reason)

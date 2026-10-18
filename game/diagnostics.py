@@ -41,6 +41,15 @@ def inspect(path):
                     findings.append(('error','Shared market',f'Season #{season}: invalid stock for {resource}.'))
             for lid, in c.execute("SELECT listing_id FROM market_listings WHERE status='open'"):
                 findings.append(('error','Legacy listing',f'Listing #{lid} is still open after pooled-market migration.'))
+        if 'equipment_market_stock' in tables:
+            from game.equipment_market import KINDS
+            for season,kind,quantity in c.execute('SELECT season_id,kind,quantity FROM equipment_market_stock'):
+                if kind not in KINDS or type(quantity) is not int or quantity<0:
+                    findings.append(('error','Equipment market',f'Season #{season}: invalid stock for {kind}.'))
+        if 'equipment_market_trades' in tables:
+            for trade,quantity,price,credits in c.execute('SELECT trade_id,quantity,unit_price,credit_amount FROM equipment_market_trades'):
+                if quantity<=0 or price<=0 or credits<0:
+                    findings.append(('error','Equipment transaction',f'Trade #{trade}: invalid quantity or Credits.'))
         semantics(c,tables,findings)
         counts = {t:c.execute(f'SELECT count(*) FROM {t}').fetchone()[0] for t in ('accounts','settlements','game_events','admin_actions') if t in tables}
         return {'findings':findings,'counts':counts,'ok':not any(f[0]=='error' for f in findings)}

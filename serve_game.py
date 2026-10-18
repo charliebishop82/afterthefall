@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 import sqlite3
+import logging
 
 from flask_app import create_app, public_origin, ROOT
 
@@ -28,18 +29,33 @@ def main(argv=None):
     parser.add_argument('--port',type=int,default=8767)
     parser.add_argument('--allow-host',action='append',default=[])
     parser.add_argument('--public-url',default=None)
+    parser.add_argument('--no-background-catchup',action='store_true',help='Disable automatic settlement updates for troubleshooting')
     args=parser.parse_args(argv)
     try:
         if args.host not in ('127.0.0.1','localhost') and not args.allow_host:
             raise ValueError('LAN hosting requires --allow-host with your LAN address.')
         options=server_options(args.host,args.port,args.public_url)
         app=create_app(args.database,port=args.port,allowed_hosts=args.allow_host,public_url=args.public_url,log_path=args.log_file)
-        from waitress import serve
+        from waitress import create_server
+        logging.basicConfig()
+        server=create_server(app,**options)
         print(f'Playtest: http://127.0.0.1:{args.port}\nSave: {app.game_database}',flush=True)
         print(f'Player request log: {args.log_file.resolve()}',flush=True)
         if args.public_url:print(f'Configured public origin: {public_origin(args.public_url)} (start ngrok separately)',flush=True)
-        print('Waiting for the administrator-controlled shared start. Ctrl+C stops the server.',flush=True)
-        serve(app,**options)
+        print('Server ready. Saved start status is retained; the browser shows any catch-up progress. Ctrl+C stops the server.',flush=True)
+        coordinator=None
+        try:
+            if not args.no_background_catchup:
+                from game.background import Coordinator
+                coordinator=Coordinator(app.game_database,app.gameplay_lock,clock=app.game_clock)
+                coordinator.start()
+                print('Background settlement updates enabled. No player login is needed.',flush=True)
+            else:
+                print('Background settlement updates disabled; requests drive catch-up.',flush=True)
+            server.run()
+        finally:
+            if coordinator:coordinator.stop()
+            server.close()
     except KeyboardInterrupt:
         pass
     except (ValueError,OSError,sqlite3.Error) as error:

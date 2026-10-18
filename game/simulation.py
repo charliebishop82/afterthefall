@@ -14,6 +14,7 @@ import time
 from database.create_database import connect_database
 from game.settlement import load_config, read_state
 from game import buildings
+from game.calculations import simulated
 
 FINALIZING = ContextVar('finalizing_shared_season', default=False)
 
@@ -97,12 +98,15 @@ def _event(connection, state, kind, now, data):
     event(connection,state,kind,now,data,event_id)
 
 
-def _advance(connection, state, now):
+@simulated
+def _advance(connection, state, now, *, deadline=None, max_intervals=None):
     from game.admin_controls import frozen
     if frozen(connection, state):
         return
     if finish_shared_season(connection, state, now):
         return
+    from game import offline
+    if state:offline.ensure_activity(connection,state)
     from game.expeditions import synchronize as expedition_sync
     if state and expedition_sync(connection,state,state['settlement']['simulation_processed_at']):state=read_state(connection)
     from game.diplomacy import synchronize as treaty_sync
@@ -122,16 +126,28 @@ def _advance(connection, state, now):
     if state:
         expiry_time=state['settlement']['simulation_processed_at'] if state['settlement']['status']=='active' and state['season']['status'] in ('active','finalizing') else now
         if expire(connection,state,expiry_time):state=read_state(connection)
+    intervals = 0
     while state and state['season']['status'] in ('active', 'finalizing') and state['settlement']['status'] == 'active':
+        # Yield only between complete authoritative steps. Ordinary callers
+        # retain full catch-up; the HTTP batch coordinator opts into a budget.
+        if intervals and ((deadline is not None and time.perf_counter() >= deadline)
+                          or (max_intervals is not None and intervals >= max_intervals)):
+            return
+        intervals += 1
         start = state['settlement']['simulation_processed_at']
         if now <= start:
             return
+        offline_until=offline.cutoff(connection,state)
+        if offline_until is not None and start>=offline_until:
+            offline.skip(connection,state,min(now,state['season']['ends_at']))
+            state=read_state(connection)
+            continue
         from game.maintenance import prepare as prepare_maintenance
         if prepare_maintenance(connection,state,start):state=read_state(connection)
         from game.manufacturing import prepare
         if prepare(connection,state,start):state=read_state(connection)
-        _advance_interval(connection, state, now)
-        state = read_state(connection)
+        updated = _advance_interval(connection, state, min(now,offline_until) if offline_until is not None else now)
+        state = updated if updated is not None else read_state(connection)
         if expedition_sync(connection,state,state["settlement"]["simulation_processed_at"]):state=read_state(connection)
         if synchronize(connection,state,state['settlement']['simulation_processed_at']):state=read_state(connection)
         if citizen_sync(connection,state,state['settlement']['simulation_processed_at']):state=read_state(connection)
@@ -156,40 +172,52 @@ def _advance_interval(connection, state, now):
     if now <= start:
         return  # Repeated reads and backwards clock adjustments never double-process.
     target = min(now, state['season']['ends_at'])
+    boundaries=[('batch/offline horizon',now),('season end',state['season']['ends_at'])]
     from game.settlement import CURRENT_ACCOUNT
     if CURRENT_ACCOUNT.get() is not None:target=min(target,(start//86400+1)*86400)
+    if CURRENT_ACCOUNT.get() is not None:boundaries.append(('daily rollover',(start//86400+1)*86400))
     from game.expeditions import next_boundary as expedition_boundary
     expedition_at=expedition_boundary(state)
+    boundaries.append(('expedition',expedition_at))
     if expedition_at is not None:target=min(target,expedition_at)
     from game.trading import next_expiry,available
     expires_at=next_expiry(connection,state)
+    boundaries.append(('trade expiry',expires_at))
     if expires_at is not None:target=min(target,expires_at)
     from game.recovery import next_boundary
     recovery_at=next_boundary(state)
+    boundaries.append(('healing',recovery_at))
     if recovery_at is not None:
         target=min(target,recovery_at)
     from game.progression import next_boundary as xp_boundary
     xp_at=xp_boundary(state)
+    boundaries.append(('work XP',xp_at))
     if xp_at is not None:target=min(target,xp_at)
     from game.repairs import next_boundary as repair_boundary
     repair_at=repair_boundary(state)
+    boundaries.append(('building repair',repair_at))
     if repair_at is not None:target=min(target,repair_at)
     from game.needs import next_boundary as needs_boundary
     needs_at=needs_boundary(state)
+    boundaries.append(('Food/Water shortage',needs_at))
     if needs_at is not None:target=min(target,needs_at)
     from game.manufacturing import next_boundary as military_boundary
     military_at=military_boundary(state)
+    boundaries.append(('manufacturing',military_at))
     if military_at is not None:target=min(target,military_at)
     from game.consequences import next_boundary as citizen_boundary
     citizen_at=citizen_boundary(state)
+    boundaries.append(('citizen consequences',citizen_at))
     if citizen_at is not None:target=min(target,citizen_at)
     if state.get('expansion'):
         from game.banking import investments
         for investment in investments(connection,state['settlement']['settlement_id']):
             if investment['matures_at']>start:target=min(target,investment['matures_at'])
+            if investment['matures_at']>start:boundaries.append(('investment maturity',investment['matures_at']))
     completion = buildings.next_completion(state)
     if completion is not None:
         target = min(target, start + completion)
+        boundaries.append(('work completion',start+completion))
     if target < start:
         raise ValueError('The saved season end precedes its processed time.')
     rates = resource_rates(state)
@@ -197,11 +225,13 @@ def _advance_interval(connection, state, now):
         for resource in ('scrap','metal','electronics'):
             if rates[resource]['net']<0 and available(state,resource)>1e-8:
                 target=min(target,start+max(1,math.ceil(available(state,resource)/-rates[resource]['net']*3600)))
+                boundaries.append(('material depletion',start+max(1,math.ceil(available(state,resource)/-rates[resource]['net']*3600))))
         # Restart waiting conversion plants at the first whole second of input
         # recovery, even during one long offline request.
-        if any(s['reason']=='Waiting for input materials' for s in buildings.operating_status(state).values()):
-            if any(available(state,r)<=1e-8 and rates[r]['production']>0 for r in ('scrap','metal')):
-                target=min(target,start+1)
+        from game.production_flow import input_retry
+        if input_retry(state,rates,buildings.operating_status(state)):
+            target=min(target,start+1)
+            boundaries.append(('converter input retry',start+1))
     depleted_at = None
     for resource, rate in rates.items():
         if resource not in ('food','water'):
@@ -217,9 +247,21 @@ def _advance_interval(connection, state, now):
                 continue
             seconds = math.ceil(min(quantity, rate['capacity']) / -rate['net'] * 3600)
             boundary = start + seconds
+            boundaries.append((resource+' depletion',boundary))
             depleted_at = boundary if depleted_at is None else min(depleted_at, boundary)
     if depleted_at is not None:
         target = min(target, depleted_at)
+    from game.quiet import round_target
+    target=round_target(state,target)
+    from game.calculations import record_limits
+    record_limits(start,target,boundaries)
+    from game.calculations import CURRENT
+    metrics=CURRENT.get()
+    if metrics is not None:
+        metrics['simulation_intervals'] += 1
+        if target-start>60:
+            metrics['long_intervals'] += 1
+            metrics['long_interval_seconds'] += target-start
     elapsed_hours = (target - start) / 3600
     amounts = {}
     for resource, rate in rates.items():
@@ -246,7 +288,9 @@ def _advance_interval(connection, state, now):
     from game.repairs import regenerate
     regenerate(connection,state,target-start,target)
     from game.population import rebalance
-    rebalance(connection,read_state(connection),target)
+    snapshot=read_state(connection)
+    snapshot_changes=connection.total_changes
+    rebalance(connection,snapshot,target)
     if target == state['season']['ends_at']:
         # Shared finalization runs after every participant has reached the end.
         from game.settlement import CURRENT_ACCOUNT
@@ -275,6 +319,10 @@ def _advance_interval(connection, state, now):
             connection.execute("UPDATE seasons SET status='paused',paused_at=? WHERE season_id=?",
                                (target, state['season']['season_id']))
         _event(connection, state, 'prototype_supply_pause', target, amounts)
+
+    # Rebalancing usually writes nothing. The snapshot is already authoritative
+    # then; if it changed any row, reload rather than returning stale housing.
+    return snapshot if connection.total_changes==snapshot_changes else read_state(connection)
 
 
 def advance_settlement(path, now=None):

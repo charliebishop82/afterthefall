@@ -79,7 +79,7 @@ output. Scavenging overflow is still lost; clearing work and its XP still count.
 ## Utilities and storage
 
 Electricity and Oxygen require both geometric coverage and sufficient generated
-capacity. Footprint tile centers use the established 75% union rule. Every
+capacity. Footprint tile centers use the approved 50% union rule. Every
 functioning provider adds capacity and its own footprint-distance zone. Zones
 overlap without multiplying radius or counting a tile twice. Only sources that
 can actually start contribute coverage: disconnected generator/Oxygen dependency

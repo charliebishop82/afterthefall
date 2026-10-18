@@ -35,6 +35,7 @@ class ExpeditionTests(unittest.TestCase):
         self.assertAlmostEqual(delivered['metal'],1.375)
         self.assertFalse(any(c.get('exploring') for c in returned['citizens']))
         self.assertEqual(self.advance(11800)['resources'],returned['resources'])
+        self.assertEqual(self.sql("SELECT count(*) FROM notifications WHERE account_id=? AND notification_type='expedition_return'",(self.a,))[0][0],1)
     def test_recall_stops_gathering_and_returns_unused_provisions(self):
         eid=self.launch()
         with account_scope(self.a):expeditions.command(self.path,'recall',2800,expedition_id=eid)

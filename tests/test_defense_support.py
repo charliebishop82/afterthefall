@@ -8,11 +8,12 @@ from game.buildings import change_building,spec,job_speed
 from game.settlement import account_scope,read_settlement,load_config
 from game.simulation import advance_settlement
 
-from tests.fixtures import SupportFixture
+from tests.fixtures import SupportFixture,SupportWorld,baseline_world
 
 class DefenseSupportTests(SupportFixture, unittest.TestCase):
  def setUp(self):
-  self.setup_support()
+  world=baseline_world(self,'support',SupportWorld)
+  self.__dict__.update({k:v for k,v in vars(world).items() if k!='addCleanup'})
 
  def test_activation_idempotent_and_late_join_preserves_all_versions(self):
   before=self.state();self.change('enable_support');self.assertEqual(before,self.state())

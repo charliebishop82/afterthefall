@@ -19,6 +19,7 @@ from game.buildings import change_building,operating_status,coverage,spec
 from game.economy import utilities,storage,available_food
 from game.simulation import advance_settlement,apply_action,resource_rates
 from game.scavenging import assign,safe_coverage
+from tests.fixtures import database_baseline,baseline_world
 import test_prototype as earlier
 
 
@@ -26,6 +27,11 @@ class ProductionTests(unittest.TestCase):
     def setUp(self):
         loot_seed=patch('game.scavenging.secrets.token_hex',return_value='seeded-test-loot')
         loot_seed.start();self.addCleanup(loot_seed.stop)
+        world=baseline_world(self,'production',production_baseline)
+        self.__dict__.update({k:v for k,v in vars(world).items() if not k.startswith('_') and k!='addCleanup'})
+        self.temp=self.tmp
+
+    def prepare_world(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.path=Path(self.temp.name)/'production.db'
         prepare_database(self.path);create_settlement(self.path,'Economy',now=1000)
@@ -91,27 +97,34 @@ class ProductionTests(unittest.TestCase):
         self.enable();self.fund()
         self.sql("UPDATE buildings SET level=3,current_hp=1900 WHERE building_id=1")
         self.sql("UPDATE settlement_derelicts SET status='cleared'")
-        now=1000
-        # Each source is really constructed/upgraded with spending and builders,
-        # then removed from the map fixture to give the next case a clear site.
-        for kind,info in load_config('prototype_v4')['buildings'].items():
-            if kind in load_config('prototype_v3')['buildings']:continue
-            with self.subTest(kind=kind):
-                state=change_building(self.path,'build',building_type=kind,x=21,y=18,now=now)
-                bid=state['buildings'][-1]['building_id']
-                for level in range(1,info['max_level']+1):
-                    if level>1:change_building(self.path,'upgrade',building_id=bid,expected_level=level-1,now=now)
-                    change_building(self.path,'builder',building_id=bid,citizen_id=2,now=now)
-                    apply_action(self.path,'resume',now=now)
-                    now+=int(info['levels'][level-1]['minutes']*60)
-                    state=advance_settlement(self.path,now=now)
-                    self.assertEqual(state['buildings'][-1]['level'],level)
-                    self.assertEqual(state['buildings'][-1]['status'],'active')
-                    self.assertEqual(state['citizens'][1]['assignment'],'unassigned')
-                    apply_action(self.path,'pause',now=now)
-                    self.sql('UPDATE settlement_resources SET food=120,water=120,scrap=10000,metal=10000,electronics=10000')
-                with self.assertRaises(ValueError):change_building(self.path,'upgrade',building_id=bid,expected_level=info['max_level'],now=now)
-                self.sql("UPDATE buildings SET status='demolished' WHERE building_id=?",(bid,))
+        # Cases are independent, but each building still follows its complete
+        # construction/upgrade chain through real elapsed simulation. Restore
+        # once per building, not between levels, to retain that progression.
+        baseline_buildings=self.sql('SELECT count(*) FROM buildings')[0][0]
+        baseline_jobs=self.sql('SELECT count(*) FROM settlement_jobs')[0][0]
+        with database_baseline(self.path) as restore:
+            for kind,info in load_config('prototype_v4')['buildings'].items():
+                if kind in load_config('prototype_v3')['buildings']:continue
+                with self.subTest(kind=kind):
+                    restore()
+                    now=1000
+                    self.assertEqual(self.sql('SELECT count(*) FROM buildings')[0][0],baseline_buildings)
+                    self.assertEqual(self.sql('SELECT count(*) FROM settlement_jobs')[0][0],baseline_jobs)
+                    state=change_building(self.path,'build',building_type=kind,x=21,y=18,now=now)
+                    bid=state['buildings'][-1]['building_id']
+                    for level in range(1,info['max_level']+1):
+                        if level>1:change_building(self.path,'upgrade',building_id=bid,expected_level=level-1,now=now)
+                        change_building(self.path,'builder',building_id=bid,citizen_id=2,now=now)
+                        apply_action(self.path,'resume',now=now)
+                        now+=int(info['levels'][level-1]['minutes']*60)
+                        state=advance_settlement(self.path,now=now)
+                        self.assertEqual(state['buildings'][-1]['level'],level)
+                        self.assertEqual(state['buildings'][-1]['status'],'active')
+                        self.assertEqual(state['citizens'][1]['assignment'],'unassigned')
+                        apply_action(self.path,'pause',now=now)
+                        self.sql('UPDATE settlement_resources SET food=120,water=120,scrap=10000,metal=10000,electronics=10000')
+                    with self.assertRaises(ValueError):change_building(self.path,'upgrade',building_id=bid,expected_level=info['max_level'],now=now)
+                    self.sql("UPDATE buildings SET status='demolished' WHERE building_id=?",(bid,))
 
     def test_rain_collectors_are_passive_and_stabilize_water(self):
         self.enable();self.fixture('rain_collector');self.fixture('rain_collector',x=22)
@@ -193,7 +206,7 @@ class ProductionTests(unittest.TestCase):
             self.assertFalse(x<21 and x+w>18 and y<21 and y+h>18)
             self.assertFalse(any(x<ox+ow and x+w>ox and y<oy+oh and y+h>oy for ox,oy,ow,oh in occupied))
             occupied.append((x,y,w,h))
-        self.assertTrue(all(safe_coverage(state,d)>=.75 for d in state['derelicts'][:4]))
+        self.assertTrue(all(safe_coverage(state,d)>=state['config']['construction']['coverage_fraction'] for d in state['derelicts'][:4]))
 
     def loot_fixture(self):
         self.enable();d=self.state()['derelicts'][0]
@@ -230,7 +243,7 @@ class ProductionTests(unittest.TestCase):
 
     def test_scavenging_foreign_occupied_unsafe_and_full_crew_actions_roll_back(self):
         state=self.enable();safe=state['derelicts'][0]['settlement_derelict_id']
-        unsafe=next(d['settlement_derelict_id'] for d in state['derelicts'] if safe_coverage(state,d)<.75)
+        unsafe=next(d['settlement_derelict_id'] for d in state['derelicts'] if safe_coverage(state,d)<state['config']['construction']['coverage_fraction'])
         for did,cid in [(safe,1),(unsafe,2),(999,2),(safe,999)]:
             before=self.state()
             with self.assertRaises(ValueError):assign(self.path,'assign',did,cid,now=1000)
@@ -292,7 +305,7 @@ class ProductionHTTPTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.path=Path(self.temp.name)/'http.db';prepare_database(self.path);create_settlement(self.path,'Civilian Test',now=1000)
         self.server=PrototypeServer(('127.0.0.1',0),self.path,clock=lambda:1000)
-        self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
+        self.thread=threading.Thread(target=self.server.serve_forever,kwargs={'poll_interval':0.01},daemon=True);self.thread.start()
         self.addCleanup(self.server.server_close);self.addCleanup(self.server.shutdown)
 
     def test_enable_catalog_scavenging_forms_and_no_private_loot_exposure(self):
@@ -309,3 +322,10 @@ class ProductionHTTPTests(unittest.TestCase):
         body=urlencode({'token':self.server.form_token,'action':'assign','derelict_id':1,'citizen_id':2})
         self.assertEqual(self.request('POST','/scavenging',body,header)[0],303)
         self.assertEqual(self.request('POST','/scavenging',body.replace(self.server.form_token,'wrong'),header)[0],403)
+
+
+def production_baseline(owner):
+    world=ProductionTests()
+    world.addCleanup=owner.addCleanup
+    world.prepare_world()
+    return world

@@ -93,7 +93,7 @@ if (typeof document !== 'undefined') (() => {
     overview:'Supply balance and advice.',
     build:'Place structures, manage crews and recover supplies.',
     citizens:'Housing, health and resident policies.',
-    economy:'Rations, private trades, market listings and banking.',
+    economy:'Rations, shared markets, private trades and banking.',
     military:'Manufacturing, repairs, raids and defenses.',
     social:'Treaties, private messages and settlement news.'
   };
@@ -117,7 +117,7 @@ if (typeof document !== 'undefined') (() => {
     if (!selected) {
       let saved;
       try { saved = sessionStorage.getItem('player-screen'); } catch (_) {}
-      selected = groups.get(saved) || groups.get('overview');
+      selected = groups.get(saved) || groups.get('build');
     }
     for (const [key,section] of groups) {
       section.hidden = section !== selected;

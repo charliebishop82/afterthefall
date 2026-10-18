@@ -2,7 +2,7 @@
 from contextlib import closing
 import copy,json,sqlite3,unittest
 from unittest.mock import patch,Mock
-from tests.fixtures import SupportWorld
+from tests.fixtures import SupportWorld,versioned_support_world
 from game import consequences,ruins,combat
 from game.settlement import account_scope,read_state,load_config
 from game.buildings import spec,job_speed
@@ -10,8 +10,7 @@ from database.create_database import connect_database
 
 class CitizenConsequenceTests(unittest.TestCase):
     def setUp(self):
-        self.w=SupportWorld(self)
-        self.w.change('enable_consequences');self.w.config=load_config('prototype_v13')
+        self.w=versioned_support_world(self,'enable_consequences','prototype_v13')
 
     def call(self,fn,*args,now=1000,account=None):
         with closing(connect_database(self.w.path)) as c,c,account_scope(account or self.w.a):
@@ -52,10 +51,20 @@ class CitizenConsequenceTests(unittest.TestCase):
         self.assertAlmostEqual(c['current_hp'],116-116/11,places=6)
 
     def test_unexpected_oxygen_loss_evacuates_immediately(self):
-        w=self.w;bid=w.build('garden');cid=w.staff(bid)[0]
+        # A Garden now provides its own Oxygen; use a consuming workplace.
+        w=self.w;bid=w.build('recycler');cid=w.staff(bid)[0]
         w.sql('UPDATE buildings SET origin_x=35,origin_y=35 WHERE building_id=?',(bid,));state=w.advance(1000)
         self.assertEqual(next(c for c in state['citizens'] if c['citizen_id']==cid)['assignment'],'unassigned')
         self.assertEqual(next(c for c in state['citizens'] if c['citizen_id']==cid)['current_hp'],100)
+
+    def test_staffed_garden_retains_workers_in_its_own_oxygen_zone(self):
+        w=self.w;bid=w.build('garden');cid=w.staff(bid)[0]
+        w.sql('UPDATE buildings SET origin_x=35,origin_y=35 WHERE building_id=?',(bid,))
+        state=w.advance(1000)
+        citizen=next(c for c in state['citizens'] if c['citizen_id']==cid)
+        self.assertEqual(citizen['assignment'],'production')
+        self.assertEqual(citizen['current_hp'],100)
+        self.assertFalse(consequences.unsafe(state,citizen))
 
     def test_exposure_stops_after_oxygen_restoration(self):
         w=self.w;bid,cid=self.expose();w.advance(1060)

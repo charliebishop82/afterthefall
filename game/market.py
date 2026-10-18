@@ -161,6 +161,8 @@ def panel(path,state,token,now):
         else: html+='<p>No unreserved goods to sell.</p>'
         html+='</div>'
     html+=reserve_panel(path,state,token,now)
+    from game.equipment_market import panel as equipment_panel
+    html+=equipment_panel(path,state,token,now)
     html+='<details><summary>Your recent shared-market transactions</summary>'
     from datetime import datetime,timezone
     for action,r,q,p,fee,amount,at in history:
@@ -182,11 +184,13 @@ def public_snapshot(path,state,now):
         c.row_factory=sqlite3.Row
         pool=stock(c,state['season']['season_id'])
         allowance=remaining(c,state['settlement']['settlement_id'],now//86400,reserve)
+        from game.equipment_market import public_snapshot as equipment_snapshot
+        equipment=equipment_snapshot(c,state,now)
         try:
             trading.eligible(c,state,now)
             can_trade=True
         except ValueError:
             can_trade=False
-    return dict(can_trade=can_trade,resources={r:dict(stock=pool[r],**prices[r],
+    return dict(can_trade=can_trade,equipment=equipment,resources={r:dict(stock=pool[r],**prices[r],
         reserve_remaining=allowance[r] if reserve['enabled'] else 0,
         reserve_price=reserve['resources'][r]['unit_price']) for r in RESOURCES})

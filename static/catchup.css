@@ -1,0 +1,4 @@
+#catchup-progress { max-width: 48rem; margin: 2rem auto; padding: 1.5rem; border: 1px solid #495342; border-radius: .6rem; background: #20271e; }
+#catchup-bar { display: block; width: 100%; height: 1.4rem; accent-color: #b7ca8d; margin: 1.2rem 0; }
+#catchup-retry { width: auto; padding: .6rem 1rem; }
+#catchup-retry[hidden] { display: none; }

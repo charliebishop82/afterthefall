@@ -54,7 +54,7 @@ There are no free player supplies or hidden balance changes in this increment.
 The workbook is the numerical balance authority; GDD v0.2 is the gameplay
 authority. The workbook's Utilities sheet specifies coverage plus generation
 capacity, whereas the earlier GDD describes geometric zones alone. This increment
-uses the workbook's capacity model with the GDD's 75% coverage threshold.
+uses the workbook's capacity model with the prototype's approved 50% coverage threshold.
 Only the Town Hall currently supplies utilities. Oldest operational Food buildings
 receive capacity first; idle/unfinished buildings do not consume it. Staff remain
 assigned when utility capacity is insufficient and resume when it becomes available.

@@ -39,23 +39,21 @@ def enable(connection,state,now):
     _event(connection,state,'prototype_config_enabled',now,{'from':state['season']['config_version'],'to':'prototype_v4'})
 
 
-def safe_coverage(state,derelict):
-    from game.economy import utilities, within_zone
+def safe_coverage(state,derelict,utility=None):
+    from game.economy import utilities, coverage_fraction
     w,h=state['config']['derelicts'][derelict['derelict_type']]['footprint']
-    zones=utilities(state)['zones']['oxygen']
-    return sum(any(within_zone(state,x,y,z) for z in zones)
-               for x in range(derelict['origin_x'],derelict['origin_x']+w)
-               for y in range(derelict['origin_y'],derelict['origin_y']+h))/(w*h)
+    utility=utility if utility is not None else utilities(state)
+    return coverage_fraction(state,derelict['origin_x'],derelict['origin_y'],w,h,utility['zones']['oxygen'])
 
 
-def speed(state,job):
+def speed(state,job,utility=None):
     d=next(d for d in state['derelicts'] if d['settlement_derelict_id']==job['target_derelict_id'])
     from game.consequences import deliberate
-    if d['status']=='cleared' or (safe_coverage(state,d)<state['config']['construction']['coverage_fraction'] and not all(deliberate(state,c) for c in state['citizens'] if c['job_id']==job['job_id'])):return 0
+    if d['status']=='cleared' or (safe_coverage(state,d,utility)<state['config']['construction']['coverage_fraction'] and not all(deliberate(state,c) for c in state['citizens'] if c['job_id']==job['job_id'])):return 0
     workers=[c for c in state['citizens'] if c['job_id']==job['job_id'] and c['assignment']=='scavenging']
     if not workers:return 0
     from game.support import best
-    return state['config']['scavenging']['crew_speed'][len(workers)-1]*sum(productivity(state,c) for c in workers)/len(workers)*(1+best(state,'scavenge_bonus')/100)
+    return state['config']['scavenging']['crew_speed'][len(workers)-1]*sum(productivity(state,c) for c in workers)/len(workers)*(1+best(state,'scavenge_bonus',utility)/100)
 
 
 def progress(connection,state,job,seconds,now):
@@ -65,9 +63,10 @@ def progress(connection,state,job,seconds,now):
     d=next(d for d in state['derelicts'] if d['settlement_derelict_id']==job['target_derelict_id'])
     totals=json.loads(d['random_result']);recovered=json.loads(d['recovered_loot'])
     earned_delta={}
+    from game.support import best
+    salvage_bonus=best(state,'salvage_bonus')/100
     for r in ('food','water','scrap','metal','electronics'):
-        from game.support import best
-        bonus=best(state,'salvage_bonus')/100 if r in ('scrap','metal','electronics') else 0
+        bonus=salvage_bonus if r in ('scrap','metal','electronics') else 0
         delta=totals[r]*max(0,done-job['work_completed'])/job['work_required']*(1+bonus)
         recovered[r]=recovered.get(r,0)+delta;earned_delta[r]=delta
     # Quantities were settled by economy.advance_resources with the same elapsed

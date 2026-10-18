@@ -84,6 +84,17 @@ class BotCombatTests(unittest.TestCase):
         def action(route,reason,**form):return dict(route=route,reason=reason,form=form)
         with patch('game.bot_military.combat_decision',return_value=None), \
              patch('game.bot_military.spec',return_value={'workers':1}),patch('game.bot_military.coverage',return_value=1), \
-             patch('game.bot_military.rules',return_value={'construction':{'coverage_fraction':.75}}):
+             patch('game.bot_military.rules',return_value={'construction':{'coverage_fraction':.5}}):
             decision=choose_military(state,[],'aggressive',1,action,[{'citizen_id':8}])
         self.assertEqual(decision['form'],dict(action='worker',building_id=1,citizen_id=8))
+
+
+    def test_ready_war_is_launched_before_declaring_against_another_target(self):
+        ready=self.target(settlement_id=12,war_effective_at=900)
+        undeclared=self.target(settlement_id=13,war_effective_at=None)
+        result=self.decide(self.state(),[undeclared,ready])
+        self.assertEqual(result['form']['action'],'launch')
+        self.assertEqual(result['form']['target_id'],12)
+
+    def test_pending_warning_prevents_a_chain_of_new_war_declarations(self):
+        self.assertIsNone(self.decide(self.state(),[self.target(war_effective_at=1100),self.target(settlement_id=10,war_effective_at=None)]))

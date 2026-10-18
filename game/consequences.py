@@ -114,7 +114,12 @@ def next_boundary(state):
     now=state['settlement']['simulation_processed_at'];times=[(now//86400+1)*86400]
     r=state['config']['consequences'];clock=state['consequences_clock']
     if now<clock['enabled_at']:return clock['enabled_at']
-    if clock['exposed'] or any(not c.get('away') and (c['homeless_since'] is not None or c['assignment']=='unassigned') for c in state['citizens']):times.append(now+60)
+    minute_changes=clock['exposed'] or any(not c.get('away') and (c['homeless_since'] is not None or (c['assignment']=='unassigned' and c['morale']>0)) for c in state['citizens'])
+    if minute_changes:
+        from game.quiet import eligible
+        # Idle citizens' morale is linear and does not drive utility staffing.
+        # Other events, grace thresholds and UTC rollovers still split time.
+        if not eligible(state):times.append(now+60)
     for c in state['citizens']:
         if str(c['citizen_id']) in clock['exposed']:
             loss=max_hp(state,c)/(60*(r['oxygen_minutes']+(c['level']-1)*r['oxygen_level_minutes']))

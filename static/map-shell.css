@@ -1,0 +1,140 @@
+/* Presentation-only map-first command surface. */
+.map-first { --dock-height:58px; padding-bottom:calc(var(--dock-height) + 12px); }
+.map-first [hidden] { display:none!important; }
+.map-first main { max-width:none; padding:calc(var(--resource-bar-height,78px) + 8px) 16px 8px; }
+.map-first .topbar,.map-first main > .heading,.map-first footer { display:none; }
+.map-first main > .resources { position:fixed; top:0; left:0; right:0; z-index:60; display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:0; border-radius:0; margin:0; padding:4px 8px; }
+.map-first main > .resources .resource { min-width:0; padding:4px 9px; border-right:1px solid var(--line); }
+.map-first main > .resources .resource > span { font-size:10px; letter-spacing:.02em; }
+.map-first main > .resources .resource strong { font-size:18px; line-height:1.2; display:inline; }
+.map-first main > .resources .resource .resource-capacity { display:inline; font-size:9px; margin-left:3px; }
+.map-first main > .resources .resource small { display:none!important; }
+.map-first main > .resources.show-rates .resource small { display:block!important; font-size:9px; }
+.map-first main > .resources:not(.show-rates) .resource:hover small,.map-first main > .resources:not(.show-rates) .resource:focus small { display:block!important; position:absolute; top:100%; left:0; min-width:160px; padding:8px; background:var(--panel); border:1px solid var(--accent); z-index:2; }
+.map-first .resource .storage-full { font-size:8px; padding:0 3px; }
+.map-first .resource:focus-visible { outline:2px solid var(--accent); }
+.map-first .clock-controls { padding:2px 0; margin:0; font-size:10px; min-height:22px; }
+.map-first .clock-controls .player-info { display:none; }
+.map-first .clock-controls small { font-size:9px; }
+.command-tools { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:3px 0 8px; font-size:11px; }
+.command-tools > span { margin-right:auto; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); letter-spacing:.08em; }
+.resource-label-icon { width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:1.7; vertical-align:-2px; margin-right:4px; }
+.command-tools button { width:auto; min-height:28px; padding:4px 9px; margin:0; font-size:11px; }
+.command-tools summary { cursor:pointer; padding:5px 8px; border:1px solid var(--line); border-radius:5px; }
+.purpose-legend,.account-tools,.work-shortcut { position:relative; }
+.attention-shortcut { padding:5px 8px; border:1px solid var(--line); border-radius:5px; font-size:11px; }
+.attention-shortcut.has-alerts { color:#f2ca86; border-color:#977347; }
+.work-shortcut > div { position:absolute; top:100%; right:0; width:min(350px,85vw); max-height:45vh; overflow:auto; padding:10px; background:var(--panel); border:1px solid var(--line); border-radius:8px; z-index:44; }
+.work-shortcut a { display:block; padding:7px; font-size:11px; border-bottom:1px solid var(--line); }
+.purpose-legend > div,.account-tools > div { position:absolute; top:100%; right:0; z-index:45; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px; width:min(360px,85vw); box-shadow:0 8px 24px #0008; }
+.purpose-legend > div { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.purpose-legend i { display:inline-block; width:10px; height:10px; margin-right:5px; }
+.purpose-legend p { grid-column:1/-1; font-size:11px; }
+.command-shell { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; height:calc(100dvh - var(--resource-bar-height,78px) - 142px); min-height:340px; position:relative; }
+.command-shell.has-drawer { grid-template-columns:minmax(0,1fr) minmax(320px,390px); }
+.command-shell > .map-panel { min-width:0; display:flex; flex-direction:column; margin:0; overflow:hidden; border:1px solid var(--line); border-radius:10px; }
+.command-shell .map-panel > .panel-heading { padding:10px 14px; }
+.command-shell .map-panel h2 { font-size:17px; margin:0; }
+.command-shell .map-scroll { flex:1; min-height:230px; margin:0; }
+.command-shell .map-scroll svg { height:100%; width:100%; }
+.command-shell .map-help,.command-shell .screen-intro { font-size:11px; margin:5px 10px; }
+.command-drawer { min-width:0; overflow:auto; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:10px; overscroll-behavior:contain; }
+.command-drawer[hidden] { display:none!important; }
+.command-drawer-heading { position:sticky; top:-10px; z-index:4; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 0; background:var(--panel); font-size:12px; }
+.command-drawer-heading button { width:auto; padding:4px 8px; margin:0; min-height:28px; font-size:11px; }
+.management-fold { margin:7px 0; border:1px solid var(--line); border-radius:8px; }
+.management-fold > summary { padding:11px; cursor:pointer; font-size:13px; }
+.management-fold > .production-panel,.management-fold > .food-section { margin:0; border:0; padding:8px; }
+.command-drawer .food-cards,.command-drawer .citizen-grid,.command-drawer .military-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.command-drawer .food-cards { grid-template-columns:1fr; }
+.command-drawer .citizen-card,.command-drawer .military-card { padding:9px; }
+.command-drawer .section-shortcuts { gap:3px; margin-bottom:6px; }
+.command-drawer .section-shortcuts a { font-size:10px; }
+.command-drawer input,.command-drawer select { font-size:12px; padding:7px; }
+.command-drawer .manual-hall { display:block; }
+.command-drawer .manual-hall .details { min-width:0; width:auto; padding:12px; }
+.map-first .player-menu { width:min(520px,calc(100vw - 20px)); bottom:calc(6px + env(safe-area-inset-bottom,0px)); padding:4px; }
+.map-first .player-menu a { padding:4px 2px; gap:2px; font-size:10px; }
+.map-first .player-menu a svg { width:18px; height:18px; }
+.map-first .map-inspector,.map-first .citizen-inspector,.map-first .military-inspector { top:calc(var(--resource-bar-height,78px) + 72px); bottom:calc(var(--dock-height) + 12px); max-height:none; width:min(370px,calc(100vw - 32px)); z-index:45; }
+.map-first .map-build-panel { max-height:calc(100dvh - var(--resource-bar-height,78px) - 230px); }
+.map-selected > rect:first-of-type { stroke:#fff7d1; stroke-width:.22; filter:drop-shadow(0 0 .08px #fff); }
+.map-derelict { stroke-dasharray:.22 .14; fill-opacity:.62; }
+.map-construction { stroke-dasharray:.08 .08; fill-opacity:.65; }
+.map-state-badge { font-size:.38px; font-weight:bold; fill:#ffe4a1; stroke:#20251e; stroke-width:.1; paint-order:stroke fill; }
+.map-first .gameplay-tip { bottom:76px; }
+html { scroll-padding-top:calc(var(--resource-bar-height,78px) + 12px); }
+@media(max-width:1050px){.map-first main > .resources { grid-template-columns:repeat(5,minmax(0,1fr)); }.map-first main > .resources .resource strong { font-size:15px; }.command-shell.has-drawer { grid-template-columns:minmax(0,1fr) 330px; }}
+@media(max-width:800px){.map-first main { padding-left:7px; padding-right:7px; }.command-shell.has-drawer { grid-template-columns:minmax(0,1fr); }.command-drawer { position:absolute; right:0; top:0; bottom:0; width:min(390px,92%); z-index:25; box-shadow:-12px 0 30px #0009; }.command-tools > span { display:none; }.command-shell { min-height:300px; }}
+@media(max-width:480px){.map-first main > .resources { grid-template-columns:repeat(3,minmax(0,1fr)); }.map-first main > .resources .resource { padding:2px 5px; }.map-first main > .resources .resource > span { font-size:9px; }.map-first .clock-controls { font-size:9px; }.command-shell { height:calc(100dvh - var(--resource-bar-height,112px) - 136px); min-height:260px; }.command-shell .panel-heading > span { display:none; }}
+@media(pointer:coarse){.map-first .player-menu a { min-height:44px; }}
+@media print{.map-first main > .resources { position:static; }.map-first main { padding:0; }.command-shell { height:auto; display:block; }.command-tools { display:none; }}
+
+/* Keep navigation outside collapsible account controls and maximize the map. */
+.map-first main { padding-left:6px; padding-right:6px; }
+.map-first .player-menu { display:flex!important; position:fixed; z-index:80; visibility:visible; }
+.command-navigation { display:flex; gap:4px; flex-wrap:wrap; margin:0 0 4px; }
+.command-navigation a { padding:4px 10px; border:1px solid var(--line); border-radius:5px; font-size:12px; background:var(--panel); }
+.command-tools { margin-bottom:4px; gap:4px; }
+.command-shell.has-drawer { grid-template-columns:minmax(0,1fr); }
+.command-drawer { position:absolute; right:0; top:0; bottom:0; width:min(390px,92%); z-index:25; box-shadow:-12px 0 30px #0009; box-sizing:border-box; }
+.command-shell .map-panel > .panel-heading { padding:5px 10px; }
+.command-shell .map-scroll { max-height:none; }
+.operator-app .map-derelict { stroke-dasharray:.22 .14; fill-opacity:.62; }
+.operator-app .map-construction { stroke-dasharray:.08 .08; fill-opacity:.65; }
+
+/* The SVG must use the flex viewport, not its intrinsic square dimensions. */
+.command-shell > .map-panel { min-height:0; }
+.command-shell .map-scroll { padding:0; min-height:0; flex:1 1 0; }
+.command-shell .map-scroll > svg { position:absolute; inset:0; display:block; width:100%; height:100%; max-height:none; max-width:none; min-width:0; }
+.command-shell .map-panel > .player-info { display:none; }
+.command-shell .map-filters { margin:0; padding:3px 10px; }
+.command-shell .map-controls { left:50px; right:auto; }
+
+
+/* Floating management windows; full settlement is the stable background. */
+.map-first main { padding:calc(var(--resource-bar-height,90px) + 4px) 8px 4px; }
+.map-first main > .resources { padding:3px 6px; }
+.map-first main > .resources .resource { padding:3px 7px; }
+.map-first main > .resources .resource strong { font-size:17px; }
+.map-first main > .resources .resource small,
+.map-first main > .resources:not(.show-rates) .resource:hover small,
+.map-first main > .resources:not(.show-rates) .resource:focus small { display:block!important; position:static; min-width:0; padding:0; border:0; background:none; font-size:9px; line-height:1.3; color:var(--muted); }
+.map-first .command-navigation { display:none; }
+.command-tools { margin:3px 0 5px; }
+.command-shell,.command-shell.has-drawer { display:block; min-height:260px; }
+.command-shell > .map-panel { width:100%; height:100%; box-sizing:border-box; border-radius:8px; }
+.command-shell .map-panel > .panel-heading { flex:0 0 auto; }
+.command-shell .map-scroll { position:relative; flex:1 1 0; min-height:0; padding:0; }
+.command-shell .map-scroll > svg { position:absolute; inset:0; width:100%; height:100%; max-height:none; }
+.command-shell .command-drawer { position:fixed; left:50%; right:auto; top:calc(var(--resource-bar-height,90px) + 24px); bottom:calc(var(--dock-height,58px) + 18px); transform:translateX(-50%); width:min(960px,calc(100vw - 48px)); max-height:none; padding:0 18px 18px; z-index:55; border:1px solid var(--accent); border-radius:12px; box-shadow:0 15px 65px #000b; background:var(--panel); overflow:auto; }
+.command-drawer-heading { top:0; padding:12px 0; border-bottom:1px solid var(--line); margin-bottom:10px; }
+.command-drawer-heading strong { font-size:17px; }
+.command-drawer .food-cards { grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+.command-drawer .citizen-grid,.command-drawer .military-grid { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+.map-first .map-inspector,.map-first .citizen-inspector,.map-first .military-inspector { z-index:57; }
+.map-first .player-menu { width:min(650px,calc(100vw - 16px)); z-index:80; }
+.map-first .player-menu a { min-height:40px; font-size:11px; }
+.map-first .map-controls { left:auto; right:10px; }
+@media(max-width:600px){
+ .command-shell .command-drawer { width:calc(100vw - 12px); top:calc(var(--resource-bar-height,130px) + 8px); padding:0 10px 12px; }
+ .map-first main > .resources .resource strong { font-size:14px; }
+ .map-first main > .resources .resource small { font-size:8px; }
+ .command-drawer .food-cards { grid-template-columns:1fr; }
+ .command-tools > span { display:none; }
+}
+
+/* One narrow toolbar replaces the permanent offline/status banner. */
+.map-first .command-tools { align-items:center; gap:5px; }
+.map-first .command-tools > span { margin-right:4px; }
+.map-first .command-tools .compact-clock { display:flex; align-items:center; flex-wrap:wrap; gap:5px; margin:0 auto 0 0; padding:0; min-height:0; border:0; background:none; }
+.map-first .compact-clock > div { display:flex; align-items:center; flex-wrap:wrap; gap:5px; }
+.map-first .compact-clock #clock-label { font-size:10px; font-weight:400; }
+.map-first .compact-clock #connection-status { font-size:9px; }
+.map-first .compact-clock form { margin:0; padding:0; }
+.map-first .compact-clock button { width:auto; min-height:26px; padding:3px 8px; margin:0; font-size:10px; }
+.map-first .compact-clock .panel-update-notice { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.map-first .compact-clock .update-panels-button { width:auto!important; display:inline-flex; align-items:center; }
+.map-first .compact-clock .update-panels-button[hidden] { display:none!important; }
+.map-first .account-tools .attention-warning { font-size:12px; line-height:1.5; }
+@media(max-width:800px){.map-first .compact-clock #connection-status { display:none; }.map-first .command-tools .compact-clock { flex-basis:100%; order:2; }}

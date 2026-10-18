@@ -68,6 +68,8 @@ def hourly_rates(state, seconds=None):
 
 def next_boundary(state):
     if not enabled(state):return None
+    from game import quiet
+    if quiet.eligible(state):return quiet.xp_boundary(state)
     if not state['xp_clock']['pending'] and not hourly_rates(state):return None
     start=state['settlement']['simulation_processed_at'];anchor=state['recovery_clock']['anchor']
     quantum=state['config']['recovery']['tick_seconds']

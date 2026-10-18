@@ -336,6 +336,9 @@ def resolve(connection,attack,now):
     for owner in (one,two):
         connection.execute('INSERT INTO battle_reports(attack_id,recipient_settlement_id,created_at,report_data) VALUES (?,?,?,?)',(attack['attack_id'],owner['settlement']['settlement_id'],now,json.dumps(report)))
         _event(connection,owner,'citizen_raid_resolved',now,{'attack_id':attack['attack_id'],'result':result})
+        from game.operation_results import raid_summary
+        title,summary=raid_summary(report,owner['settlement']['settlement_id']==attack['attacker_settlement_id'])
+        notify(connection,owner['settlement']['account_id'],owner['season']['season_id'],'raid_result',f'Raid #{attack["attack_id"]}: {title}. {summary}',now,'attack',attack['attack_id'])
         with account_scope(owner['settlement']['account_id']):rebalance(connection,read_state(connection),now)
 
 

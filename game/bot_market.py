@@ -51,11 +51,15 @@ def choose_market(state,rates,seed,action,market,*,costs=None,purpose='construct
             if missing>0:
                 decision=purchase(state,market,r,missing,purpose,action)
                 if decision:return decision
+        room=cap['material']-sum(state['resources'][r] for r in MATERIALS)
+        if room<1 and any(available(state,r)<costs.get(r,0) for r in MATERIALS):
+            decision=make_room(state,rates,market,costs,action)
+            if decision:return decision
         return None
     # Sell only positive net production/recovery near capacity, never promised goods.
     rng=random.Random(seed);resources=['food','water',*MATERIALS];rng.shuffle(resources)
     for r in resources:
-        if rates.get(r,{}).get('net',0)<=0:continue
+        if rates.get(r,{}).get('net',0)<=0 and not (r in MATERIALS and sum(state['resources'][k] for k in MATERIALS)>=cap['material']-1e-8):continue
         stock=available(state,r)
         if r in ('food','water'):
             if state['resources'][r]<cap[r]*.85:continue
@@ -71,3 +75,16 @@ def choose_market(state,rates,seed,action,market,*,costs=None,purpose='construct
             return action('/market',f'Sell {quantity} surplus {r} to free storage while keeping a working reserve.',
                           action='sell',resource=r,quantity=quantity)
     return None
+
+
+def make_room(state,rates,market,costs,action):
+    """Sell excess material even when capped production reports zero net flow."""
+    if any(j['job_type']=='manufacturing' and j['status'] in ('queued','active','paused') for j in state.get('jobs',[])):return None
+    candidates=[]
+    for r in MATERIALS:
+        keep=max(costs.get(r,0),{'scrap':80,'metal':40,'electronics':10}[r],rates.get(r,{}).get('consumption',0)*6)
+        quantity=min(25,math.floor(available(state,r)-keep))
+        if quantity>0 and quantity*market['resources'][r]['sell_price']>=2:candidates.append((quantity,r))
+    if not candidates:return None
+    quantity,r=max(candidates)
+    return action('/market',f'Sell {quantity} excess {r} to make room for missing project materials; preserve the project cost and working reserve.',action='sell',resource=r,quantity=quantity)

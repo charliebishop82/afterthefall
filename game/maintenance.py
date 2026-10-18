@@ -20,7 +20,7 @@ def enable(connection,state,now):
 def workshop(state,bid=None):
     from game.economy import utilities
     status=utilities(state)['buildings']
-    return next((b for b in state['buildings'] if b['building_type']=='engineering_workshop' and (bid is None or b['building_id']==bid) and b['status']=='active' and not status[b['building_id']]['reason']),None)
+    return next((b for b in state['buildings'] if b['building_type'] in ('engineering_workshop','starter_engineering_workshop') and (bid is None or b['building_id']==bid) and b['status']=='active' and not status[b['building_id']]['reason']),None)
 
 
 def orders(state):return state.get('repair_drone_orders',{})
@@ -172,7 +172,7 @@ def panel(state,token):
     disabled=' disabled' if frozen else ''
     html+='<p>Each staffed, functioning workshop services one stored drone at a time, at 10 HP/hour. Repair Drones support paid building repairs at up to 10 HP/hour each. Turning orders off leaves any paid project paused for a crew or another drone.</p>'
     choices=''.join(f'<option value="{b["building_id"]}">{escape(state["config"]["buildings"][b["building_type"]]["name"])} #{b["building_id"]}</option>' for b in state['buildings'] if eligible(state,b))
-    shops=''.join(f'<option value="{b["building_id"]}">Workshop #{b["building_id"]}</option>' for b in state['buildings'] if b['building_type']=='engineering_workshop' and b['status']=='active')
+    shops=''.join(f'<option value="{b["building_id"]}">Workshop #{b["building_id"]}</option>' for b in state['buildings'] if b['building_type'] in ('engineering_workshop','starter_engineering_workshop') and b['status']=='active')
     for u in state['units']:
         if u['status']=='destroyed':continue
         maximum=state['config']['units'][u['unit_type']]['hp']

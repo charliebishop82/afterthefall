@@ -21,7 +21,8 @@ class ExpansionHTTPTests(unittest.TestCase):
         self.assertEqual(status,200)
         scores=json.loads(body)['scores']
         self.assertEqual(len(scores),2)
-        self.assertEqual(set(scores[0]),{'settlement_id','name','rank','overall','population','military','wealth','development'})
+        self.assertEqual(set(scores[0]),{'settlement_id','name','rank','overall','population','military','wealth','development','processed_at'})
+        self.assertIsInstance(scores[0]['processed_at'],int)
         self.assertNotIn('Loan #1:',w.request(cookie=w.b)[2])
 
     def test_bank_rejects_wrong_csrf_duplicate_fields_and_foreign_loan(self):

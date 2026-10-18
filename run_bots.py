@@ -10,6 +10,7 @@ import time
 from urllib.error import HTTPError,URLError
 from urllib.parse import urlencode,urlsplit
 from urllib.request import Request,HTTPRedirectHandler,build_opener
+from html.parser import HTMLParser
 
 from database.create_database import connect_database
 from game import accounts,bots,bot_runtime
@@ -39,6 +40,34 @@ def request(origin,route,cookie,form=None):
         with error:return error.code,error.read(4096),error.headers.get('X-Request-ID')
 
 
+def response_error(body):
+    """Keep an actionable warning without copying game HTML or hidden tokens."""
+    value=body.decode('utf-8',errors='replace')
+    if not value.lstrip().startswith('<'):return value[:500]
+    class Alert(HTMLParser):
+        def __init__(self):super().__init__();self.depth=0;self.done=False;self.parts=[]
+        def handle_starttag(self,tag,attrs):
+            if self.done:return
+            if self.depth:self.depth+=1
+            elif dict(attrs).get('role')=='alert':self.depth=1
+        def handle_endtag(self,tag):
+            if self.depth:
+                self.depth-=1
+                if not self.depth:self.done=True
+        def handle_data(self,text):
+            if self.depth:self.parts.append(text)
+    parsed=Alert();parsed.feed(value)
+    return ' '.join(' '.join(parsed.parts).split())[:500] or 'HTML error response; inspect the player request log using its request ID.'
+
+
+def job_observation(job):
+    result={k:job.get(k) for k in ('job_id','job_type','status','target_building_id','target_derelict_id','work_completed','work_required','pause_reason','output_type','output_quantity','production_building_id','target_unit_id')}
+    if job['job_type']=='manufacturing':
+        inputs=json.loads(job['inputs_spent'])
+        result['manufacturing']={k:inputs.get(k) for k in ('paid','remaining','produced','home_id')}
+    return result
+
+
 def observations(state,rates=None):
     if not state:return {'settlement_ready':False}
     from game.economy import storage
@@ -52,7 +81,7 @@ def observations(state,rates=None):
         inventory=state.get('inventory',[]),
         expeditions=[{k:r.get(k) for k in ('expedition_id','status','started_at','gather_until','returns_at','food','water','food_rate','water_rate','yields','delivered','discarded')} for r in state.get('expeditions',[])],
         munition_reservations=state.get('munition_reservations',[]),
-        jobs=[{k:j.get(k) for k in ('job_id','job_type','status','target_building_id','target_derelict_id','work_completed','work_required','pause_reason')} for j in state['jobs']],
+        jobs=[job_observation(j) for j in state['jobs']],
         sites=[{k:d.get(k) for k in ('settlement_derelict_id','derelict_type','status','recovered_loot')} for d in state['derelicts']])
         # Private loot rolls/nonces, cookies, passwords and CSRF tokens are excluded.
 
@@ -71,8 +100,16 @@ def step(path,origin,bot):
     cookie,session=accounts.new_session(path,aid,now)
     try:
         status,body,request_id=request(origin,'/api/resources',cookie)
+        if status==202:
+            # Cooperate with the same bounded catch-up used by human players.
+            # Never choose or submit an action against a partially updated world.
+            catch_status,_,catch_id=request(origin,'/api/catchup',cookie)
+            decision=dict(route=None,reason='World catch-up in progress; completed batches are saved.',form={})
+            bot_runtime.trace(path,aid,'catchup_deferred',dict(context,status=catch_status,request_id=catch_id))
+            bot_runtime.record(path,aid,now,decision,catch_status,catch_id)
+            return decision['reason']
         if status!=200:
-            bot_runtime.trace(path,aid,'refresh_rejected',dict(context,status=status,request_id=request_id,response=body.decode('utf-8',errors='replace')))
+            bot_runtime.trace(path,aid,'refresh_rejected',dict(context,status=status,request_id=request_id,response=response_error(body)))
             bot_runtime.record(path,aid,now,dict(route=None,reason='Could not refresh player snapshot.',form={}),status,request_id,'Refresh rejected');return 'Refresh rejected'
         values=json.loads(body)
         with snapshot(path) as c,account_scope(aid):state=read_state(c)
@@ -89,7 +126,7 @@ def step(path,origin,bot):
         if decision['route']:
             bot_runtime.trace(path,aid,'action_started',dict(context,decision=decision))
             status,body,request_id=request(origin,decision['route'],cookie,dict(token=session['csrf'],**decision['form']))
-            error=body.decode('utf-8',errors='replace')[:500] if status>=400 else None
+            error=response_error(body) if status>=400 else None
             # Redirects are not followed: successful player actions normally return 303.
             with snapshot(path) as c,account_scope(aid):after=read_state(c)
             bot_runtime.trace(path,aid,'action_rejected' if status>=400 else 'action_completed',

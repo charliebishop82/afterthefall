@@ -1640,3 +1640,255 @@ is needed. Use the existing matching --log-file/--player-log-file if customized.
 Owner observation: run normal play/bots for 10–15 minutes, then review Admin →
 Performance. Logging adds no gameplay changes and no new database writes.
 New regression tests join automatic discovery; Codex did not run tests/servers.
+
+
+## Citizen board draft (owner validation pending)
+Citizens now includes a visual board above the unchanged detailed roster. Cards
+show initials, name/ID, level, health/morale bars, assignment and Captured/Injured
+badges. Filters: All/Free/Working/Away/Injured; sorts: Name/lowest Health/lowest
+Morale/highest Level. Selecting a card opens an inspector with XP, health, morale,
+assignment, expedition return estimate and context links to existing controls.
+Links navigate only: choose the citizen and confirm in the original manual form.
+No new action endpoints or automatic assignments. Card data uses the existing
+initial page and resource poll; no extra polling loop. All labels use escaped
+server JSON/textContent. Original roster IDs and live update hooks are preserved.
+Restart game/admin with the same save and refresh. Python/optional Node UI tests
+join automatic parallel discovery. Codex ran no tests, servers or playtests.
+Military portal work remains a later increment after reviewing this draft.
+
+
+## Military portal draft (owner validation pending)
+Military now starts with a visual dashboard: equipment cards and All/Ready/
+Deployed/Damaged filters; click equipment to inspect individual IDs, status, HP
+and home-building links. Counters show eligible citizen raiders, remaining attack
+allowance, home citizens and patrol/guard assignments. Ready inventory requires
+existing availability, health and operational-home rules; stored/deployed stock
+is shown separately. Production queues, raids and named expeditions update
+through the existing resource poll. Quick links open production, combat,
+expeditions, defense assignments and maintenance. All original manual forms stay
+underneath/on their existing pages; no alternate actions or gameplay changes.
+Restart game/admin and refresh using the same save. New Python/optional Node
+regressions join automatic discovery. Codex ran no tests or browser playtests.
+
+
+## Offline catch-up (October 2026)
+
+After a long absence the player page shows **Updating your world**. It runs one
+short simulation batch at a time and commits completed progress between requests.
+The progress display counts combined settlement-hours, not estimated waiting time.
+Closing the page or stopping the server does not discard committed batches; relaunch
+with the same database and reopen the game to resume. Retry resumes after a request
+error. Do not delete the save or its journal files.
+
+The catch-up coordinator synchronizes required participants before
+resolving shared events. Viewing rankings uses saved snapshots. Simulation preserves resource shortages,
+XP, health, work and combat. A batch has a soft 0.6-second budget and at most 32 outer
+simulation intervals, advancing the oldest settlement toward a one-hour quiet-period horizon.
+An individual atomic step or combat/season-finalization dependency can exceed that
+budget. Small live gaps (up to two minutes) use the normal update path. Frozen
+settlements are excluded from catch-up work. Bots cooperate with catch-up and do
+not submit gameplay decisions while the world is behind. The player server now also runs a background coordinator; no login is needed to drive batches.
+
+New regression modules are automatically discovered by `run_tests_parallel.py`.
+Tests have been added but are left for the owner to run. The separate admin suite
+still uses its existing simulation paths; keep it closed during a large catch-up.
+Event-based fast-forward and admin-wide batching remain future optimizations.
+
+
+### Catch-up calculation reuse
+
+Simulation now reuses identical utility allocations within one operation (at most
+eight cached snapshots). Each consumer receives an independent allocation, since
+production throttles its copy. Worker health, morale, assignment, absence and
+building condition, level and geometry are part of the cache key. The cache is
+discarded when the operation ends; configuration edits still require a restart.
+Geometry-only coverage results use a separate bounded cache keyed by the actual
+footprints, provider locations and radii. Nothing is cached in the save.
+
+Scavenging calculates each crew's speed once per resource-rate calculation and
+shares the existing utility allocation with its support checks. Housing and
+community morale share an allocation within each housing-resolution pass.
+One-second converter retries now require arriving material that the waiting
+converter actually consumes; unrelated Scrap production no longer triggers them.
+Minute health/XP boundaries and all existing rules remain in place.
+
+Completed `/api/catchup` request records include `catchup_calculations` with utility
+call count, cache hits and time spent computing uncached allocations. These are
+diagnostic measurements, not a promised speedup or wall-time estimate. The
+existing parallel runner automatically includes `test_catchup_calculations.py`.
+No tests or live simulation were run during installation.
+
+Quiet catch-up batches can now target up to one simulated hour, still subject to
+the same 0.6-second soft budget and 32-interval cap. Near due combat and season
+finalization, the coordinator retains a shorter dependency horizon.
+
+
+
+### Quiet-period bulk processing and saved rankings
+
+Opening your settlement no longer advances unrelated settlements solely for
+rankings. Rankings show saved scores with each settlement's update time in UTC;
+scores are provisional comparisons of snapshots taken at different times.
+Due shared combat, season finalization and new Bank borrowing/investment still require
+other settlements to be synchronized. Borrowing/investing can request a separate
+Bank catch-up via `/?catchup=bank`; submit the original action again afterwards.
+The direct gameplay services continue their authoritative synchronization.
+
+Stable, fully stocked settlements can accumulate work XP up to the next level-up
+minute rather than stepping through every minute. Only states with unchanged
+resource totals, full building/citizen health, no pending health/XP clocks, no
+active work or resource reservations and no changing exposure/homelessness/morale
+qualify. Every other existing event boundary remains in force. Final partial
+minutes retain pending XP rather than being credited early. Unemployed citizens
+already at zero morale no longer force repeated minute steps solely for morale.
+Unsafe/uncertain states continue detailed processing. Routine clock-event logs
+may contain fewer entries, without changing the intended game results.
+
+Catch-up logs now count state reads, time in state reads, simulation intervals and
+long intervals. Timings overlap (state reads include their utility calculations).
+Tests comparing bulk and detailed outcomes and checking independent ranking
+snapshots are automatically discovered; they have not been run by the agent.
+
+
+
+
+## 48-hour offline simulation cap
+
+Current v13 account settlements (humans and bots) receive at most 48 hours of
+normal local simulation after their last successful own gameplay page, resource
+refresh or action. An open player page counts as active while its resource polls
+succeed. A running bot counts as active while its own snapshot refreshes succeed.
+Login alone, catch-up batches, unrelated players and admin inspection do not
+renew the allowance. Catch-up requests share the same persisted cutoff; restarting
+the server or running another batch does not grant another 48 hours.
+
+After the allowance is used, production, consumption, construction, scavenging,
+manufacturing, healing, local XP, citizen hardship/birth/desertion and active
+expedition clocks pause over the excess inactive time. Progress already earned
+is preserved; local grace-period clocks are shifted so skipped days do not cause
+instant damage on return. Normal activity resumes when the player returns.
+
+Protection expiry, attacks, war/treaty and trade deadlines, market daily reserve,
+Bank interest/maturity/liquidation and season deadlines continue in real time.
+There is no absence shield. Shared daily attack allowance/population-floor rules
+remain in force. Captured citizen integration is deferred to a subsequent active
+rollover rather than rolling repeatedly during skipped inactivity.
+
+The configurable limit is `config/offline.json` (`max_hours`: 48). Restart after
+editing it. Legacy standalone profiles are unchanged. Startup creates an additive
+`settlement_activity` table; existing saves start with their current saved clock
+as the first activity anchor because prior actual presence was not recorded.
+Existing credited progress is never rolled back. `offline_time_capped` game
+events audit skipped time; the player page explains the last capped absence.
+Admin pauses preserve the remaining allowance separately.
+
+Restart game, admin and bot processes when ready to use this change; reuse the
+same database. Keep admin/bots stopped for the first catch-up observation.
+`test_offline_cap.py` is automatically discovered by the parallel test runner.
+The agent has not run these tests or modified the live database.
+
+
+## Automatic settlement updates at server launch
+
+The normal `serve_game.py` command starts one background coordinator after the
+server has successfully bound its listening address. It checks every eligible
+settlement without requiring anyone to log in, rotates batches between players,
+and keeps doing small updates while the server runs. The browser remains available
+and displays catch-up progress if its settlement is still behind. Bots still need
+their separate decision runner; the coordinator only simulates existing rules.
+
+This is concurrent HTTP service, not simultaneous SQLite writers. Background
+and player work share one gate and the same authoritative clock; each background
+batch commits and yields. Normal updates are scheduled about 15 seconds apart
+per settled player; after the 48-hour allowance is exhausted, shared-clock upkeep
+is less frequent (up to five minutes unless a request or shared event needs it).
+Pauses, freezes and inactive accounts are respected. Background processing never
+renews a player's offline allowance. Startup creates no activity renewal either.
+
+Run only one player server against a save. No extra terminal or package is needed.
+Ctrl+C requests the coordinator to stop after its current atomic batch. Startup
+and periodic progress messages appear in the game terminal. Detailed rotating
+records are in `logs/background-simulation.jsonl`; the admin **Performance** page
+shows the latest records alongside request timings. Separate admin processes
+continue to rely on SQLite transaction locking. Soft batch budgets still allow
+an individual shared operation to take longer.
+
+For troubleshooting, append `--no-background-catchup` to the normal game command;
+browser/bot requests can still drive catch-up. This flag does not reset the save.
+`create_app()` itself does not launch threads, so test fixtures and imports remain
+isolated. New background-coordinator regression tests are automatically discovered
+by the parallel runner and have not been run by the agent.
+
+
+### Reading real-time catch-up progress
+
+Background terminal updates (about every 15 seconds while pending) now show elapsed
+real time for this server run, combined game-hours behind, net game-hours cleared
+per real minute, and an approximate remaining real-time estimate. The first sample
+shows “measuring”; the next comparable sample supplies speed/ETA. If the set of
+pending settlements changes, estimation restarts to avoid counting paused/removed
+settlements as completed simulation. A growing or stationary backlog has no ETA.
+The rate measures net backlog reduction across all updates, including browser work,
+while new game time continues to arrive. It is not a CPU benchmark. Time skipped
+after the offline cap can make the rate jump; the ETA is explicitly approximate.
+Equivalent `background_progress` records appear on admin Performance and in the
+background JSONL log. Restart only the player server to load this formatting change.
+The parallel test runner automatically discovers `test_background_progress.py`;
+these tests have not been run by the agent.
+
+
+### Fewer snapshot loads and broader steady-state processing
+
+Simulation intervals reuse their already-read result when housing rebalancing
+made no database changes. Any rebalancing write forces a fresh snapshot.
+Prepared base/expansion rule JSON is reused within one simulation operation;
+every snapshot still receives an independent dictionary. New rule versions or
+expansion activation select a different entry, and caches disappear after the
+operation. `rule_snapshot_hits` accompanies state-read timings in batch logs.
+
+Bulk XP can now cover stable production while stores grow or drain, not only
+full stores. It stops on the original minute grid before a storage-fill or
+depletion transition; the transition minute retains the detailed calculation.
+Active work, changing health, exposure, homelessness, reservations and material
+converters retain their detailed path. Housing must have uniform quality so XP
+priority changes cannot silently move citizens between comfort levels. Idle
+citizens' linear unemployment morale can be accumulated over such stable periods;
+grace thresholds, attacks and daily birth/desertion checks remain boundaries.
+Internal clock/morale event entries can be fewer while actual player actions
+and meaningful outcomes remain logged. The 48-hour cap and background scheduling
+are unchanged. New regression tests are auto-discovered and have not been run.
+
+
+### Per-settlement catch-up diagnostics
+
+Terminal progress separates simulation hours left before each player's offline
+cutoff from calendar hours to skip after it. ETA and speed use simulation backlog,
+not the excess hours that will be skipped. Estimates exclude the cost of shared
+resolution and the final skip; when only skipped time remains the display says so.
+Changing the pending population resets rate measurement as before.
+
+Each progress report includes one line per pending settlement with its remaining
+simulation/skip hours and boundary counts from its latest completed batch. These
+counts are collected from actual selected boundaries, without rerunning simulation
+to diagnose it. Tied boundaries each count (for example, healing and XP can both
+require the same minute); shared dependencies can be included in a batch. “Batch/
+offline horizon” and “XP minute alignment” are scheduling limits, not failures.
+Full records appear in background logs and admin Performance. Boundary counts
+remain useful even if the settlement has changed since its last reported batch.
+Tests were added/updated but not run; discovery remains automatic.
+
+
+### Paused, unstaffed scavenging and bulk processing
+
+An unfinished scavenging job that is paused and has no assigned citizen no longer
+blocks otherwise safe bulk processing. It remains paused: it receives no work,
+salvage or worker XP, and assigning a citizen later uses the normal command.
+The simulation still visits normal level-up, resource, health and shared-event
+boundaries. Jobs with any assigned citizen, active/queued jobs and other job types
+retain the conservative detailed path. A site needing completion cleanup or an
+already-due survivor discovery also retains detailed processing, so those events
+cannot be silently delayed. Other housing, health and converter guards remain.
+Diagnostics omit genuinely inert jobs from the bulk-blocker list. Existing and
+new comparison tests check results against the detailed path, including loot and
+unchanged work; the parallel runner discovers them automatically. They have not
+been run by the agent. The 48-hour cap and background coordinator are unchanged.

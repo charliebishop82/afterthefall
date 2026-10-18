@@ -48,6 +48,8 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
     # This also covers different players: refresh can process shared-season work.
     # SQLite still protects transactions; this gate prevents stale request times.
     gameplay_lock = RLock()
+    app.gameplay_lock=gameplay_lock
+    app.game_clock=clock
 
     def serialized_gameplay(view):
         @wraps(view)
@@ -150,6 +152,18 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
     @app.errorhandler(ValueError)
     def bad_action(error):
         mark_error(error)
+        if request.method=='POST' and request.path in GAME_ROUTES and logged_in():
+            # The action transaction has rolled back. Render saved state only:
+            # do not replay the action or advance time again while handling it.
+            from game.settlement import read_settlement
+            with gameplay_lock, account_scope(g.actor['account_id']):
+                state=read_settlement(database)
+                if state:
+                    html=web_views.settlement(database,state,g.actor,g.actor['csrf'],now())
+                    notice=('<div class="error" role="alert"><strong>Action not applied.</strong> '
+                            +escape(str(error))+' <a href="/">Refresh settlement</a></div>')
+                    html=html.replace('<main id="main">','<main id="main">'+notice,1)
+                    return Response(html,status=400,content_type='text/html; charset=utf-8')
         return text(str(error),400)
     @app.errorhandler(PermissionError)
     def forbidden(error):
@@ -186,10 +200,15 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
         from game import expansion
         from game.simulation import advance_settlement
         with account_scope(g.actor['account_id']):
-            expansion.refresh(database,now())
+            from game import catchup
+            if catchup.status(database,g.actor['account_id'],now(),shared=request.args.get('catchup')=='bank')['status']=='catching_up':
+                return catchup_page(shared=request.args.get('catchup')=='bank')
             state=advance_settlement(database,now())
             if not state:return lobby_page()
-            return web_views.settlement(database,state,g.actor,g.actor['csrf'],now())
+            result=web_views.settlement(database,state,g.actor,g.actor['csrf'],now())
+            from game.offline import touch
+            touch(database,g.actor['account_id'],now())
+            return result
 
     @app.get('/api/lobby')
     def lobby_status():
@@ -207,9 +226,48 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
         from game import expansion
         from game.simulation import advance_settlement
         with account_scope(g.actor['account_id']):
-            expansion.refresh(database,now());state=advance_settlement(database,now())
+            from game import catchup
+            progress=catchup.status(database,g.actor['account_id'],now())
+            if progress['status']=='catching_up':return jsonify(progress),202
+            state=advance_settlement(database,now())
             if not state:return text('You did not enroll before launch.',403)
-            return jsonify(web_views.resources(database,state,now()))
+            payload=web_views.resources(database,state,now())
+            from game.offline import touch
+            touch(database,g.actor['account_id'],now())
+            return jsonify(payload)
+
+    def catchup_page(shared=False):
+        from game.offline import settings as offline_settings
+        policy=offline_settings()
+        return page('Updating your world', ('<p>The previous Bank action was not applied. Submit it again after catch-up.</p>' if shared else '')+'<link rel="stylesheet" href="/static/catchup.css"><section id="catchup-progress" data-shared="'+('bank' if shared else '')+'"><h1>Updating your world</h1>'
+            '<p>Processing the time since settlements were last updated. Production, supplies, '
+            'construction and other events still follow the normal rules.</p>'
+            f'<p>Offline local activity is capped at {policy["max_hours"]} hours; excess inactivity is skipped. Shared deadlines continue.</p>'
+            '<p id="catchup-message" role="status">Starting a short catch-up batch…</p>'
+            '<progress id="catchup-bar" max="100" value="0" aria-label="Catch-up progress"></progress>'
+            '<p>Progress is saved between batches. You can close this page and resume later. '
+            'Unrelated rankings use saved standings. Shared events may require other settlements to catch up.</p>'
+            '<button id="catchup-retry" type="button" hidden>Retry catch-up</button>'
+            '<noscript>JavaScript is required for automatic catch-up batches.</noscript>'
+            '</section><script src="/static/catchup.js" defer></script>')
+
+    @app.get('/api/catchup-status')
+    def catchup_readiness():
+        # Readiness checks do not take the simulation gate or advance any clocks.
+        if not logged_in():return text('Log in first.',401)
+        from game import catchup
+        return jsonify(catchup.status(database,g.actor['account_id'],now(),shared=request.args.get('scope')=='bank'))
+
+    @app.get('/api/catchup')
+    @serialized_gameplay
+    def catchup_batch():
+        if not logged_in():return text('Log in first.',401)
+        from game import catchup
+        result=catchup.step(database,g.actor['account_id'],now(),shared=request.args.get('scope')=='bank')
+        g.catchup_metrics=result.get('calculations',{})
+        response=jsonify(result)
+        response.headers['Cache-Control']='no-store'
+        return response
 
     @app.get('/favicon.ico')
     def favicon():return Response(status=204)
@@ -252,7 +310,17 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
             lobby.enroll(database,aid,value('name'),stamp);return redirect('/',303)
         if path=='/clock':return text('Players cannot change shared time.',403)
         if lobby.status(database)['status']!='started':return text('Wait for the administrator to start the playtest.',403)
+        from game import catchup
+        bank_sync=path=='/bank' and value('action') in ('borrow','invest')
+        if catchup.status(database,aid,stamp,shared=bank_sync)['status']=='catching_up':
+            if bank_sync:
+                return page('Bank catch-up required','<h1>Bank catch-up required</h1><p>Your action was not applied.</p><p><a href="/?catchup=bank">Update the Bank’s settlements</a>, then submit your action again.</p>'),503
+            response=text('The world is catching up. Open the game page to resume; this action was not applied.',503)
+            response.headers['Retry-After']='2'
+            return response
         with account_scope(aid):game_action(database,path,form,stamp)
+        from game.offline import touch
+        touch(database,aid,stamp)
         return redirect('/',303)
 
     return app
@@ -286,7 +354,12 @@ def game_action(database,path,form,now):
         else:trading.transact(database,action,now,trade_id=integer('trade_id'))
     elif path=='/conflict':combat.command(database,action,now,target_id=integer('target_id'),citizen_ids=[int(v) for v in form.get('citizen_id',[])],objective=value('objective','balanced'),drone_ids=[int(v) for v in form.get('drone_id',[])],missile_count=int(value('missile_count','0')))
     elif path=='/bank':expansion.transact(database,action,now,amount=integer('amount'),days=integer('days'),loan_id=integer('loan_id'),investment_id=integer('investment_id'))
-    elif path=='/market':market.transact(database,action,now,resource=value('resource'),quantity=integer('quantity'),unit_price=integer('unit_price'),listing_id=integer('listing_id'))
+    elif path=='/market':
+        if action in ('equipment_buy','equipment_sell','equipment_reserve_buy'):
+            from game.equipment_market import transact
+            transact(database,action,now,unit_type=value('unit_type'),quantity=integer('quantity'))
+        else:market.transact(database,action,now,resource=value('resource'),quantity=integer('quantity'),unit_price=integer('unit_price'),listing_id=integer('listing_id'))
     elif path=='/diplomacy':diplomacy.transact(database,action,now,target_id=integer('target_id'),treaty_type=value('treaty_type'),treaty_id=integer('treaty_id'))
     elif path=='/communication':communication.transact(database,action,now,target_id=integer('target_id'),subject=value('subject'),body=value('body'),message_id=integer('message_id'),post_id=integer('post_id'),reason=value('reason'))
     else:raise ValueError('Unknown game action.')
+

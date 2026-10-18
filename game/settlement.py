@@ -8,6 +8,7 @@ import time
 from contextvars import ContextVar
 from contextlib import contextmanager
 from functools import lru_cache
+from game.calculations import state_reads
 
 CURRENT_ACCOUNT=ContextVar("current_account",default=None)
 
@@ -112,6 +113,27 @@ def read_settlement(path):
         return read_state(connection)
 
 
+def _rules_snapshot(connection, season):
+    """Reuse prepared rule text within simulation; snapshots stay independent."""
+    from game.calculations import CURRENT
+    from game import expansion
+    metrics=CURRENT.get()
+    if metrics is None:
+        return expansion.overlay(connection,season['season_id'],load_config(season['config_version']))
+    active=expansion.enabled(connection,season['season_id'])
+    source=expansion.config() if active else None
+    key=(season['config_version'],active,id(source))
+    cached=metrics['rule_snapshots'].get(key)
+    if cached is not None:
+        metrics['rule_snapshot_hits']+=1
+        return json.loads(cached[0]),cached[1]
+    config,active=expansion.overlay(connection,season['season_id'],load_config(season['config_version']))
+    # Retain the source to prevent ID reuse. No mutable state snapshot is cached.
+    metrics['rule_snapshots'][key]=(json.dumps(config),active,source)
+    return config,active
+
+
+@state_reads
 def read_state(connection):
     """Read inside the caller's transaction; caller sets sqlite3.Row factory."""
     settlement_id = _existing_settlement(connection)
@@ -121,9 +143,7 @@ def read_state(connection):
                       (settlement_id,)).fetchone())
     season = dict(connection.execute('SELECT * FROM seasons WHERE season_id=?',
                                     (settlement['season_id'],)).fetchone())
-    config = load_config(season['config_version'])
-    from game.expansion import overlay
-    config, expansion = overlay(connection, season['season_id'], config)
+    config, expansion = _rules_snapshot(connection,season)
     resources = connection.execute('SELECT * FROM settlement_resources WHERE settlement_id=?',
                                    (settlement_id,)).fetchone()
     buildings = [dict(row) for row in connection.execute(
