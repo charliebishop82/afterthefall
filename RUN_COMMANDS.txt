@@ -30,6 +30,10 @@ python -X utf8 run_bots.py --database database/playtest-fresh-01.db --game-url h
 
 Start the game server first. Create and enable bots through the admin tools.
 The bot runner chooses actions; the server handles settlement simulation.
+Default pacing: each bot decides every 60-120 seconds; longer configured
+intervals are retained. Five seconds between turns.
+Optional slower pacing: add --min-interval 120 --jitter 120 --action-gap 10
+Restart only the bot runner to change these options.
 Run only one bot controller for this database.
 
 TESTS - SEPARATE WINDOW

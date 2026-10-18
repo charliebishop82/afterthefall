@@ -90,11 +90,14 @@ def step(path,origin,bot):
     now=int(time.time());aid=bot['account_id']
     attempt=uuid.uuid4().hex
     context=dict(attempt=attempt,step=bot['steps'],seed=bot['seed']+bot['steps'],
-                 personality=bot.get('personality','balanced'),policy_version=POLICY_VERSION)
+                 personality=bot.get('personality','balanced'),policy_version=POLICY_VERSION,
+                 scheduled_next_at=bot.get('scheduled_next_at'),decision_delay_seconds=bot.get('decision_delay_seconds'))
     bot_runtime.trace(path,aid,'step_started',context)
     decision=dict(route=None,reason='Waiting for settlement launch or resume.',form={})
-    with snapshot(path) as c,account_scope(aid):state=read_state(c)
-    if not state:
+    # Before refreshing, only enrollment matters; do not load the whole world.
+    with snapshot(path) as c:
+        enrolled=c.execute('SELECT 1 FROM settlements WHERE account_id=? LIMIT 1',(aid,)).fetchone()
+    if not enrolled:
         bot_runtime.trace(path,aid,'waiting_for_settlement',context)
         bot_runtime.record(path,aid,now,decision);return decision['reason']
     cookie,session=accounts.new_session(path,aid,now)
@@ -113,6 +116,7 @@ def step(path,origin,bot):
             bot_runtime.record(path,aid,now,dict(route=None,reason='Could not refresh player snapshot.',form={}),status,request_id,'Refresh rejected');return 'Refresh rejected'
         values=json.loads(body)
         with snapshot(path) as c,account_scope(aid):state=read_state(c)
+        if not state:raise ValueError('Bot settlement disappeared during refresh.')
         if any(values.get(key)!=state[table][field] for key,table,field in
                [('account_id','settlement','account_id'),('settlement_id','settlement','settlement_id'),('season_id','season','season_id'),('map_seed','season','map_seed')]):
             raise ValueError('Player server does not match the selected bot save.')
@@ -154,9 +158,9 @@ def cleanup_session(path,aid,cookie):
             database_locked=bot_runtime.locked(error),outcome='Session expires normally; no credentials logged.'))
 
 
-def run_iteration(path,origin):
+def run_iteration(path,origin,*,min_interval=60,jitter=60):
     # Claim once, attempt once. A sent action is never automatically replayed.
-    bot=bots.claim(path,int(time.time()))
+    bot=bots.claim(path,int(time.time()),min_interval=min_interval,jitter=jitter)
     if not bot:return False
     try:result=step(path,origin,bot)
     except Exception as error:
@@ -175,19 +179,27 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--database',type=Path,required=True)
     parser.add_argument('--game-url',default='http://127.0.0.1:8767')
+    parser.add_argument('--min-interval',type=int,default=60,help='Minimum seconds between each bot decision (default: 60; at least 10).')
+    parser.add_argument('--jitter',type=int,default=60,help='Add 0 to this many seconds to each bot interval (default: 60).')
+    parser.add_argument('--action-gap',type=float,default=5,help='Seconds to pause after each bot turn before checking another (default: 5; at least 1).')
     args=parser.parse_args(argv)
+    if args.min_interval<10:parser.error('--min-interval must be at least 10.')
+    if args.jitter<0:parser.error('--jitter must be nonnegative.')
+    if not 1<=args.action_gap<=3600:parser.error('--action-gap must be between 1 and 3600 seconds.')
     if not args.database.is_file():parser.error('Choose an existing playtest save.')
     try:origin=game_origin(args.game_url)
     except ValueError as error:parser.error(str(error))
     ready=False
     print('Bot runner ready. Only enabled controllers act. Database locks are deferred; Ctrl+C stops.',flush=True)
+    print(f'Bot pacing: at least {args.min_interval}s per bot plus 0–{args.jitter}s stagger; {args.action_gap:g}s between turns. Longer configured bot intervals are retained.',flush=True)
     print(f'Fallback audit log: {bot_runtime.LOG_PATH}',flush=True)
     try:
         while True:
             try:
                 if not ready:
                     bots.prepare(args.database);ready=True
-                if not run_iteration(args.database,origin):time.sleep(2)
+                acted=run_iteration(args.database,origin,min_interval=args.min_interval,jitter=args.jitter)
+                time.sleep(args.action_gap if acted else 2)
             except sqlite3.Error as error:
                 bot_runtime.fallback(args.database,None,'runner_database_error',dict(error_type=type(error).__name__,database_locked=bot_runtime.locked(error)))
                 if not bot_runtime.locked(error):

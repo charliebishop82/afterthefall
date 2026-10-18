@@ -1,4 +1,5 @@
 """Season-wide pooled stock, immediate Bank-backed sales and purchases."""
+from game.read_queries import read_connection
 from contextlib import closing
 from decimal import Decimal, ROUND_CEILING
 from html import escape
@@ -176,12 +177,11 @@ def panel(path,state,token,now):
     return html+'</section>'
 
 
-def public_snapshot(path,state,now):
+def public_snapshot(path,state,now,*,connection=None):
     """Exactly the pool/prices and own allowance a normal player can inspect."""
     from game.market_reserve import settings as reserve_settings, remaining
     reserve=reserve_settings();prices=settings()
-    with closing(connect_database(path)) as c:
-        c.row_factory=sqlite3.Row
+    with read_connection(path,connection,rows=True) as c:
         pool=stock(c,state['season']['season_id'])
         allowance=remaining(c,state['settlement']['settlement_id'],now//86400,reserve)
         from game.equipment_market import public_snapshot as equipment_snapshot

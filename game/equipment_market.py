@@ -1,4 +1,5 @@
 """Atomic pooled equipment trades and separate settlement daily reserves."""
+from game.read_queries import read_connection
 from contextlib import closing
 from html import escape
 import hashlib
@@ -60,9 +61,9 @@ def public_snapshot(c,state,now):
     return rows
 
 
-def revision(path,state,now):
+def revision(path,state,now,*,connection=None):
     """Reuse the existing Update panels signal when shared stock changes."""
-    with closing(connect_database(path)) as c:
+    with read_connection(path,connection,rows=False) as c:
         if not c.execute("SELECT 1 FROM sqlite_master WHERE name='equipment_market_stock'").fetchone():return ''
         rows=c.execute('SELECT kind,quantity FROM equipment_market_stock WHERE season_id=? ORDER BY kind',(state['season']['season_id'],)).fetchall()
         latest=c.execute('SELECT max(trade_id) FROM equipment_market_trades WHERE settlement_id=?',(state['settlement']['settlement_id'],)).fetchone()[0]

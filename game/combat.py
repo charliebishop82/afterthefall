@@ -1,4 +1,5 @@
 """Citizen, drone and missile raids, war warnings and private battle reports."""
+from game.read_queries import read_connection
 from contextlib import closing
 from contextvars import ContextVar
 from functools import lru_cache
@@ -356,24 +357,24 @@ def resolve_due(connection,state,now):
     return changed
 
 
-def revision(path,state,now):
+def revision(path,state,now,*,connection=None):
     sid=state['settlement']['settlement_id']
-    with closing(connect_database(path)) as c:
+    with read_connection(path,connection,rows=False) as c:
         rows=c.execute('''SELECT attack_id,status FROM attacks WHERE attacker_settlement_id=? OR defender_settlement_id=? ORDER BY attack_id''',(sid,sid)).fetchall()
         treaties=[(row[0],row[1],(row[2] or 0)<=now) for row in c.execute('SELECT treaty_id,status,effective_at FROM treaties WHERE settlement_a_id=? OR settlement_b_id=? ORDER BY treaty_id',(sid,sid))]
     return hashlib.sha256(json.dumps([rows,treaties]).encode()).hexdigest()[:16]
 
 
-def timers(path,state,now):
+def timers(path,state,now,*,connection=None):
     sid=state['settlement']['settlement_id']
-    with closing(connect_database(path)) as c:
+    with read_connection(path,connection,rows=False) as c:
         from game.admin_controls import timer_now
         return {str(row[0]):max(0,row[1]-timer_now(c,'attack',row[0],now)) for row in c.execute("SELECT attack_id,resolves_at FROM attacks WHERE status='in_flight' AND (attacker_settlement_id=? OR defender_settlement_id=?)",(sid,sid))}
 
 
-def war_timers(path,state,now):
+def war_timers(path,state,now,*,connection=None):
     sid=state['settlement']['settlement_id']
-    with closing(connect_database(path)) as c:
+    with read_connection(path,connection,rows=False) as c:
         from game.admin_controls import timer_now
         return {str(row[0]):max(0,row[1]-timer_now(c,'treaty',row[0],now)) for row in c.execute("SELECT treaty_id,effective_at FROM treaties WHERE treaty_type='war' AND status='active' AND (settlement_a_id=? OR settlement_b_id=?)",(sid,sid))}
 

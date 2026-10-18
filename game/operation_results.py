@@ -1,8 +1,6 @@
 """Own-settlement mission summaries from persisted reports; no simulation writes."""
-from contextlib import closing
+from game.read_queries import read_connection
 import json
-from pathlib import Path
-import sqlite3
 
 
 def goods(values):
@@ -33,10 +31,9 @@ def expedition_summary(row):
     return 'Explorers returned','Gathered: '+goods(gathered)+'. Delivered (including unused provisions): '+goods(delivered)+'. Storage overflow: '+goods(discarded)+'.'
 
 
-def snapshot(path,state):
+def snapshot(path,state,*,connection=None):
     sid=state['settlement']['settlement_id'];season=state['season']['season_id'];rows=[]
-    with closing(sqlite3.connect(Path(path).resolve().as_uri()+'?mode=ro',uri=True)) as c:
-        c.row_factory=sqlite3.Row;c.execute('PRAGMA query_only=ON');c.execute('BEGIN')
+    with read_connection(path,connection,rows=True) as c:
         for row in c.execute('''SELECT b.report_id,b.attack_id,b.created_at,b.report_data,a.attacker_settlement_id FROM battle_reports b JOIN attacks a USING(attack_id) WHERE b.recipient_settlement_id=? AND a.season_id=? ORDER BY b.report_id DESC LIMIT 10''',(sid,season)):
             title,text=raid_summary(json.loads(row['report_data']),row['attacker_settlement_id']==sid)
             rows.append(dict(id='raid-'+str(row['report_id']),at=row['created_at'],title=f'Raid #{row["attack_id"]} · '+title,text=text,href='#conflict'))

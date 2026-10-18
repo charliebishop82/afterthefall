@@ -1,4 +1,5 @@
 """Private trades backed by the V1 schema. All exchanges use one write transaction."""
+from game.read_queries import read_connection
 from contextlib import closing
 from html import escape
 import hashlib
@@ -286,10 +287,10 @@ def panel(path, state, token):
         return html + '</section>'
 
 
-def revision(path, state):
+def revision(path, state,*,connection=None):
     """Wake the existing page refresher when participant trades or players change."""
     sid, season = state['settlement']['settlement_id'], state['season']['season_id']
-    with closing(connect_database(path)) as c:
+    with read_connection(path,connection,rows=False) as c:
         trades = c.execute('''SELECT trade_id,status FROM trade_proposals WHERE season_id=?
             AND (proposer_settlement_id=? OR recipient_settlement_id=?) ORDER BY trade_id''', (season,sid,sid)).fetchall()
         players = c.execute('''SELECT s.settlement_id,s.settlement_name,s.status,a.is_active FROM settlements s

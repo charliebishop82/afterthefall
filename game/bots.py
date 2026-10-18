@@ -3,6 +3,7 @@ from contextlib import closing
 from html import escape
 import json
 import secrets
+import random
 import sqlite3
 from database.create_database import connect_database
 from game import accounts,admin,lobby
@@ -72,13 +73,28 @@ def control(path,actor,aid,action,now):
         admin.audit(c,actor,'bot_'+action,'account',aid,now,'Operator bot controller change',dict(state=before['state']),dict(state=state))
 
 
-def claim(path,now):
+def decision_delay(bot, min_interval=60, jitter=60):
+    """Independent deterministic pacing; never consume gameplay policy RNG."""
+    if min_interval<10 or jitter<0:raise ValueError('Invalid bot pacing interval.')
+    rng=random.Random(f"{bot['seed']}:{bot['account_id']}:{bot['steps']}:cadence")
+    return max(min_interval,bot['interval_seconds'])+rng.randint(0,jitter)
+
+
+def claim(path,now,*,min_interval=60,jitter=60):
+    if min_interval<10 or jitter<0:raise ValueError('Invalid bot pacing interval.')
+    query="SELECT b.* FROM bot_controllers b JOIN accounts a USING(account_id) WHERE b.state='running' AND a.is_active=1 AND b.next_at<=? AND b.lease_until<=? ORDER BY b.next_at,b.account_id LIMIT 1"
     with closing(connect_database(path)) as c,c:
-        c.row_factory=sqlite3.Row;c.execute('BEGIN IMMEDIATE')
-        row=c.execute("SELECT b.* FROM bot_controllers b JOIN accounts a USING(account_id) WHERE b.state='running' AND a.is_active=1 AND b.next_at<=? AND b.lease_until<=? ORDER BY b.next_at,b.account_id LIMIT 1",(now,now)).fetchone()
+        c.row_factory=sqlite3.Row
+        # Idle polling must not reserve SQLite's writer. Recheck eligibility
+        # atomically after acquiring it, since another runner may claim first.
+        if not c.execute(query,(now,now)).fetchone():return None
+        c.execute('BEGIN IMMEDIATE')
+        row=c.execute(query,(now,now)).fetchone()
         if not row:return None
-        c.execute('UPDATE bot_controllers SET lease_until=?,next_at=? WHERE account_id=?',(now+120,now+row['interval_seconds'],row['account_id']))
-        return dict(row)
+        bot=dict(row);delay=decision_delay(bot,min_interval,jitter)
+        c.execute('UPDATE bot_controllers SET lease_until=?,next_at=? WHERE account_id=?',
+                  (now+120,now+delay,row['account_id']))
+        return dict(bot,scheduled_next_at=now+delay,decision_delay_seconds=delay)
 
 
 def record(path,aid,now,decision,status=None,request_id=None,error=None):

@@ -1,4 +1,5 @@
 """Military choices use own equipment and ordinary public target information."""
+from game.read_queries import read_connection
 from contextlib import closing
 import random
 import sqlite3
@@ -7,11 +8,10 @@ from game.buildings import rules,spec,footprint,coverage
 from game.trading import available
 
 
-def public_targets(path,state,now):
+def public_targets(path,state,now,*,connection=None):
     from game import combat,diplomacy
     sid=state['settlement']['settlement_id'];season=state['season']['season_id']
-    with closing(connect_database(path)) as c:
-        c.row_factory=sqlite3.Row
+    with read_connection(path,connection,rows=True) as c:
         result=[]
         for row in c.execute('''SELECT s.settlement_id,s.settlement_name,s.protection_until FROM settlements s
             JOIN accounts a USING(account_id) WHERE s.season_id=? AND s.settlement_id!=? AND s.status='active'

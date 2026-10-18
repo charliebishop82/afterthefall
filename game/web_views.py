@@ -5,31 +5,29 @@ import hashlib
 import json
 import re
 
+from game.read_queries import read_connection
 from database.create_database import connect_database
 from game import trading, combat, market, diplomacy, communication, expansion_views, banking
 
 
-def revision(path, state, now):
-    value = trading.revision(path,state)+combat.revision(path,state,now)+communication.revision(path,state,now)
-    if state.get('expansion'):
-        with closing(connect_database(path)) as c:
-            import sqlite3
-            c.row_factory=sqlite3.Row
+def revision(path, state, now, *, ranked_scores=None, connection=None):
+    from game.equipment_market import revision as equipment_revision
+    with read_connection(path,connection,rows=True) as c:
+        value = (trading.revision(path,state,connection=c)+combat.revision(path,state,now,connection=c)
+                 +communication.revision(path,state,now,connection=c))
+        if state.get('expansion'):
             sid=state['settlement']['settlement_id']
-            scores=expansion_views.scores(c,state)
-            signature=[[(r['settlement_id'],r['rank']) for r in scores],
+            board=expansion_views.scores(c,state) if ranked_scores is None else ranked_scores
+            signature=[[(r['settlement_id'],r['rank']) for r in board],
                        [(r['loan_id'],r['outstanding_balance'],r['status']) for r in banking.loans(c,sid)],
                        [(r['investment_id'],r['principal'],r['accrued_interest']) for r in banking.investments(c,sid)]]
             value+=hashlib.sha256(json.dumps(signature,sort_keys=True).encode()).hexdigest()[:16]
-    from game.equipment_market import revision as equipment_revision
-    return value+equipment_revision(path,state,now)
+        return value+equipment_revision(path,state,now,connection=c)
 
 
-def scores(path,state):
+def scores(path,state,*,connection=None):
     if not state.get('expansion'):return []
-    with closing(connect_database(path)) as c:
-        import sqlite3
-        c.row_factory=sqlite3.Row
+    with read_connection(path,connection,rows=True) as c:
         return expansion_views.scores(c,state)
 
 
@@ -138,25 +136,28 @@ def resources(path,state,now):
     payload['scavenging']=scavenging_summary(state,include_completed=True)
     payload['materials']={r:state['resources'][r] for r in ('scrap','metal','electronics')}
     if state['settlement']['status']=='suspended':payload['status']='suspended'
-    payload['revision']+=revision(path,state,now)
-    payload['trade_available']={r:trading.available(state,r) for r in trading.RESOURCES}
-    payload['trade_reserved']=state['reserved']
     from game.bot_military import public_targets
-    payload['targets']=public_targets(path,state,now)
-    payload['market']=market.public_snapshot(path,state,now)
     from game.expeditions import live as expedition_live
     payload['expeditions']=expedition_live(state)
     from game.citizen_portal import payload as citizen_portal_payload
     payload['citizen_portal']=citizen_portal_payload(state)
     from game.military_portal import payload as military_portal_payload
     payload['military_portal']=military_portal_payload(state)
-    payload['military_portal']['raid_timers']=payload['raid_timers'] if 'raid_timers' in payload else {}
-    payload['raid_timers']=combat.timers(path,state,now)
-    payload['military_portal']['raid_timers']=payload['raid_timers']
-    payload['war_timers']=combat.war_timers(path,state,now)
+    payload['trade_available']={r:trading.available(state,r) for r in trading.RESOURCES}
+    payload['trade_reserved']=state['reserved']
     from game.operation_results import snapshot as operation_snapshot
-    payload['operation_results']=operation_snapshot(path,state)
-    if state.get('expansion'):
-        payload['scores']=scores(path,state)
-        payload['own_score']=next(r['overall'] for r in payload['scores'] if r['settlement_id']==state['settlement']['settlement_id'])
+    # One read-only snapshot for auxiliary saved data. Nothing survives this
+    # response; simulation has already committed before presentation begins.
+    with read_connection(path) as c:
+        board=scores(path,state,connection=c) if state.get('expansion') else None
+        payload['revision']+=revision(path,state,now,ranked_scores=board,connection=c)
+        payload['targets']=public_targets(path,state,now,connection=c)
+        payload['market']=market.public_snapshot(path,state,now,connection=c)
+        payload['raid_timers']=combat.timers(path,state,now,connection=c)
+        payload['military_portal']['raid_timers']=payload['raid_timers']
+        payload['war_timers']=combat.war_timers(path,state,now,connection=c)
+        payload['operation_results']=operation_snapshot(path,state,connection=c)
+        if state.get('expansion'):
+            payload['scores']=board
+            payload['own_score']=next(r['overall'] for r in board if r['settlement_id']==state['settlement']['settlement_id'])
     return payload

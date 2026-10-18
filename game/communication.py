@@ -1,4 +1,5 @@
 """Persistent private mail, season board, public news and read notifications."""
+from game.read_queries import read_connection
 from contextlib import closing
 from html import escape
 import hashlib
@@ -91,10 +92,10 @@ def panel(path,state,token,now):
     return html+'</section>'
 
 
-def revision(path,state,now):
+def revision(path,state,now,*,connection=None):
     """Wake the existing refresher without leaking private message contents."""
     aid=state['settlement']['account_id'];sid=state['settlement']['settlement_id'];season=state['season']['season_id']
-    with closing(connect_database(path)) as c:
+    with read_connection(path,connection,rows=False) as c:
         rows=[c.execute(query,args).fetchall() for query,args in (
             ('SELECT listing_id,status,remaining_quantity FROM market_listings WHERE season_id=? ORDER BY listing_id',(season,)),
             ('SELECT treaty_id,status,cancelled_at,expires_at,coalesce(cooldown_until,0)>? FROM treaties WHERE season_id=? AND (settlement_a_id=? OR settlement_b_id=?) ORDER BY treaty_id',(now,season,sid,sid)),
