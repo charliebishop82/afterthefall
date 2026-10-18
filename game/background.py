@@ -11,7 +11,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import sqlite3
-from threading import Event, Thread
+from threading import Event, Lock, Thread
 import time
 import traceback
 
@@ -60,22 +60,33 @@ class Coordinator:
         self.progress=Progress()
         self.latest_limits={}
         self.latest_blockers={}
+        self._log_handler=None
+        self._log_lock=Lock()
+
+    def close_log(self):
+        """Close only after the worker exits; stop() may time out mid-batch."""
+        with self._log_lock:
+            if self._log_handler is not None:
+                try:self._log_handler.close()
+                except OSError:pass
+                self._log_handler=None
 
     def record(self,event,**data):
-        handler=None
+        # This lock protects the reusable sink, independently of gameplay.
         try:
-            self.log_path.parent.mkdir(parents=True,exist_ok=True)
-            handler=RotatingFileHandler(self.log_path,maxBytes=5_000_000,backupCount=3,encoding='utf-8')
             row=dict(event=event,timestamp_utc=datetime.now(timezone.utc).isoformat(timespec='milliseconds'),
                      database=self.path.name,**data)
-            handler.emit(logging.LogRecord('background-simulation',logging.INFO,'',0,
-                                           json.dumps(row,allow_nan=False),(),None))
+            text=json.dumps(row,allow_nan=False)
+            with self._log_lock:
+                if self._log_handler is None:
+                    self.log_path.parent.mkdir(parents=True,exist_ok=True)
+                    self._log_handler=RotatingFileHandler(self.log_path,maxBytes=5_000_000,
+                                                         backupCount=3,encoding='utf-8')
+                self._log_handler.handle(logging.LogRecord('background-simulation',logging.INFO,'',0,
+                                                           text,(),None))
         except (OSError,ValueError,TypeError):
+            self.close_log()
             print('Background simulation log unavailable.',flush=True)
-        finally:
-            if handler:
-                try:handler.close()
-                except OSError:pass
 
     def run_once(self):
         # Never queue background work ahead of an in-progress player request.
@@ -90,28 +101,30 @@ class Coordinator:
             sid=result.get('processed_settlement_id')
             if sid is not None:self.latest_limits[sid]=result.get('step_limits',{})
             if sid is not None:self.latest_blockers[sid]=result.get('bulk_blockers',[])
-            self.record('background_batch',requested_account_id=player['account_id'],
-                        pending_settlements=len(rows),**result)
-            if time.monotonic()-self.last_report>=15:
-                self.last_report=time.monotonic()
-                stats=self.progress.sample(rows,self.last_report)
-                print(message(len(rows),stats),flush=True)
-                details=[]
-                for row in rows:
-                    limits=self.latest_limits.get(row['settlement_id'],{})
-                    reason=', '.join(f'{name} ({count})' for name,count in sorted(limits.items(),key=lambda pair:-pair[1])) or 'awaiting first batch sample'
-                    blockers=self.latest_blockers.get(row['settlement_id'],[])
-                    guard=', '.join(blockers) or 'none identified; rate/storage boundaries may still apply'
-                    print(f"  Settlement #{row['settlement_id']}: {row['simulation_seconds']/3600:.1f}h to simulate; {row['skip_seconds']/3600:.1f}h to skip; last batch limits: {reason}; bulk guards: {guard}.",flush=True)
-                    details.append(dict(row,step_limits=limits,bulk_blockers=blockers))
-                self.record('background_progress',pending_settlements=len(rows),settlements=details,**stats)
-            return result
         finally:
             self.gate.release()
+        # The batch has committed. Reporting uses its captured snapshot and must
+        # never hold up player requests on disk I/O or a paused terminal.
+        self.record('background_batch',requested_account_id=player['account_id'],
+                    pending_settlements=len(rows),**result)
+        if time.monotonic()-self.last_report>=15:
+            self.last_report=time.monotonic()
+            stats=self.progress.sample(rows,self.last_report)
+            print(message(len(rows),stats),flush=True)
+            details=[]
+            for row in rows:
+                limits=self.latest_limits.get(row['settlement_id'],{})
+                reason=', '.join(f'{name} ({count})' for name,count in sorted(limits.items(),key=lambda pair:-pair[1])) or 'awaiting first batch sample'
+                blockers=self.latest_blockers.get(row['settlement_id'],[])
+                guard=', '.join(blockers) or 'none identified; rate/storage boundaries may still apply'
+                print(f"  Settlement #{row['settlement_id']}: {row['simulation_seconds']/3600:.1f}h to simulate; {row['skip_seconds']/3600:.1f}h to skip; last batch limits: {reason}; bulk guards: {guard}.",flush=True)
+                details.append(dict(row,step_limits=limits,bulk_blockers=blockers))
+            self.record('background_progress',pending_settlements=len(rows),settlements=details,**stats)
+        return result
 
     def _run(self):
-        self.record('background_started')
         try:
+            self.record('background_started')
             while not self.stopping.is_set():
                 try:
                     result=self.run_once()
@@ -129,7 +142,8 @@ class Coordinator:
                     delay=3
                 self.stopping.wait(delay)
         finally:
-            self.record('background_stopped')
+            try:self.record('background_stopped')
+            finally:self.close_log()
 
     def start(self):
         if self.thread and self.thread.is_alive():return

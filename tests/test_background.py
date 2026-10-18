@@ -23,6 +23,7 @@ class BackgroundTests(unittest.TestCase):
     def coordinator(self,w,now=1200):
         worker=background.Coordinator(w.path,Lock(),clock=lambda:now,
                                       log_path=Path(w.tmp.name)/'background.jsonl')
+        self.addCleanup(worker.close_log)
         worker.last_report=time.monotonic()
         return worker
 
