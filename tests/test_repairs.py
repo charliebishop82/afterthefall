@@ -1,7 +1,7 @@
 """Repair spending, crew work, regeneration, time boundaries and rollback."""
 import unittest,sqlite3
 from contextlib import closing
-import test_population as fixtures
+from tests import test_population as fixtures
 from game.buildings import change_building
 from game.simulation import apply_action,advance_settlement
 from game.repairs import costs
@@ -139,7 +139,7 @@ class RepairTests(unittest.TestCase):
         state=change_building(self.path,'repair',building_id=bid,now=4600)
         self.assertEqual(len(state['jobs']),2)
 
-import test_prototype as http_fixtures
+from tests import test_prototype as http_fixtures
 from game.settlement import read_settlement
 from urllib.parse import urlencode
 class RepairHTTPTests(unittest.TestCase):

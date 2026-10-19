@@ -30,7 +30,7 @@ class StrategyTests(unittest.TestCase):
         config={'map_width':8,'map_height':8,'construction':{'coverage_fraction':.5},'buildings':{
           'town_hall':{'footprint':[2,2],'levels':[{'radius':2}]},
           'oxygen_garden':{'footprint':[1,1],'unlock':1,'workers_min':0,'oxygen_required':False,'electricity_required':False,'levels':[{'radius':2,'oxygen_output':4,'scrap':40,'metal':0,'electronics':0}]}},'derelicts':{'ruin':{'footprint':[1,1]}}}
-        hall={'building_id':1,'building_type':'town_hall','origin_x':0,'origin_y':0,'level':1,'status':'active'}
+        hall={'building_id':1,'building_type':'town_hall','origin_x':0,'origin_y':0,'rotation':0,'level':1,'status':'active'}
         site={'derelict_type':'ruin','origin_x':5,'origin_y':1,'status':'untouched'}
         state={'season':{'config_version':'prototype_v13'},'config':config,'buildings':[hall],'derelicts':[site]}
         with patch('game.economy.utilities',return_value={'zones':{'oxygen':[hall]}}):plan=expansion_plan(state)

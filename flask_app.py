@@ -218,6 +218,17 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
             joined=bool(c.execute('SELECT 1 FROM settlements WHERE account_id=? AND season_id=(SELECT max(season_id) FROM seasons)',(g.actor['account_id'],)).fetchone())
         return jsonify(status=state['status'],started_at=state['started_at'],joined=joined)
 
+    @app.get('/api/market-panel')
+    def market_panel():
+        if not logged_in():return text('Log in first.',401)
+        from game.operator_views import snapshot
+        from game.settlement import read_state
+        from game.market import panel
+        with account_scope(g.actor['account_id']):
+            with snapshot(database) as c:state=read_state(c)
+            if not state:return text('Join the game first.',403)
+            return Response(panel(database,state,g.actor['csrf'],now()),content_type='text/html; charset=utf-8')
+
     @app.get('/api/resources')
     @serialized_gameplay
     def resource_status():
@@ -321,6 +332,8 @@ def create_app(database=None, *, clock=time.time, port=8767, allowed_hosts=(), p
         with account_scope(aid):game_action(database,path,form,stamp)
         from game.offline import touch
         touch(database,aid,stamp)
+        if path=='/market' and request.headers.get('X-Market-Async')=='1':
+            return Response(status=204)
         return redirect('/',303)
 
     return app

@@ -13,9 +13,7 @@ from app import PrototypeServer
 from database.create_database import connect_database
 from game.settlement import create_settlement, prepare_database, read_settlement
 from game.simulation import advance_settlement, apply_action, resource_rates
-import test_prototype as prototype_tests
-
-
+from tests import test_prototype as prototype_tests
 class SimulationTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

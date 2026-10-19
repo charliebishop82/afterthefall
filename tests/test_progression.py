@@ -2,7 +2,7 @@
 import unittest
 from contextlib import closing
 import sqlite3
-import test_population as fixtures
+from tests import test_population as fixtures
 from game.buildings import change_building,productivity
 from game.simulation import apply_action,advance_settlement
 from game.settlement import load_config
@@ -133,7 +133,7 @@ class ProgressionTests(unittest.TestCase):
         self.assertEqual(config['progression']['work_xp_per_hour'],values['productive_work_xp'])
         self.assertEqual(config['progression']['construction_xp_per_hour'],2*values['construction_xp'])
 
-import test_prototype as http_fixtures
+from tests import test_prototype as http_fixtures
 from game.settlement import read_settlement
 from urllib.parse import urlencode
 class ProgressionHTTPTests(unittest.TestCase):

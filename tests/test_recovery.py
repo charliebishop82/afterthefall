@@ -6,8 +6,8 @@ import sqlite3
 import unittest
 from urllib.parse import urlencode
 
-import test_population as population_tests
-import test_prototype as prototype_tests
+from tests import test_population as population_tests
+from tests import test_prototype as prototype_tests
 from database.create_database import connect_database
 from game.settlement import read_settlement,load_config,prepare_database
 from game.buildings import change_building,productivity

@@ -6,7 +6,7 @@ from game.military_portal import payload
 
 class MilitaryPortalTests(unittest.TestCase):
     def state(self):
-        return dict(season=dict(config_version='prototype_v13'),settlement=dict(attacks_remaining=3,simulation_processed_at=1000),
+        return dict(season=dict(config_version='prototype_v13',status='active'),settlement=dict(status='active',attacks_remaining=3,simulation_processed_at=1000),
             config=dict(citizen_hp=100,simulation=dict(hp_per_level=8),structural={},units={
                 'ground_defense_drone':dict(name='Ground drone',hp=100,factory='drone_factory',storage='ground_defense_bay')}),
             citizens=[dict(citizen_id=i,assignment='unassigned',level=1,current_hp=100,integrated=True) for i in range(7)],
@@ -17,6 +17,7 @@ class MilitaryPortalTests(unittest.TestCase):
     def test_stored_damaged_deployed_and_ready_are_distinct(self):
         state=self.state();before=copy.deepcopy(state)
         with patch('game.economy.utilities',return_value={'buildings':{2:{'reason':''}}}):result=payload(state)
+        self.assertTrue(result['clock_running'])
         row=result['equipment'][0]
         self.assertEqual((row['total'],row['ready'],row['deployed'],row['damaged']),(2,1,1,1))
         self.assertEqual(result['eligible_raiders'],1);self.assertEqual(state,before)
@@ -25,3 +26,10 @@ class MilitaryPortalTests(unittest.TestCase):
         with patch('game.economy.utilities',return_value={'buildings':{2:{'reason':'No electricity'}}}):result=payload(state)
         self.assertEqual(result['equipment'][0]['ready'],0)
         self.assertEqual(result['eligible_raiders'],0)
+
+    def test_clock_stops_for_paused_season_or_suspended_settlement(self):
+        for season_status,settlement_status in [('paused','active'),('finished','active'),('active','suspended')]:
+            with self.subTest(season=season_status,settlement=settlement_status):
+                state=self.state();state['season']['status']=season_status;state['settlement']['status']=settlement_status
+                with patch('game.economy.utilities',return_value={'buildings':{2:{'reason':''}}}):result=payload(state)
+                self.assertFalse(result['clock_running'])

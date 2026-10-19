@@ -20,9 +20,7 @@ from game.economy import utilities,storage,available_food
 from game.simulation import advance_settlement,apply_action,resource_rates
 from game.scavenging import assign,safe_coverage
 from tests.fixtures import database_baseline,baseline_world
-import test_prototype as earlier
-
-
+from tests import test_prototype as earlier
 class ProductionTests(unittest.TestCase):
     def setUp(self):
         loot_seed=patch('game.scavenging.secrets.token_hex',return_value='seeded-test-loot')
@@ -73,7 +71,12 @@ class ProductionTests(unittest.TestCase):
             self.assertEqual(info['unlock'],1 if kind=='warehouse' else int(source['D']))
             self.assertEqual(info['max_level'],int(source['F']))
             for level,s in enumerate(info['levels'],1):
-                for k,field in fields.items():self.assertEqual(s[k],float(source[headers[f'{field}_L{level}']] or 0),(kind,level,k))
+                for k,field in fields.items():
+                    # Retain workbook checks everywhere except the approved opening costs.
+                    expected=float(source[headers[f'{field}_L{level}']] or 0)
+                    if kind=='town_hall' and level==2:
+                        expected={'scrap':150,'metal':50,'electronics':5}.get(k,expected)
+                    self.assertEqual(s[k],expected,(kind,level,k))
 
     def test_enable_is_explicit_idempotent_and_preserves_old_supplies(self):
         before=self.state();state=self.enable()

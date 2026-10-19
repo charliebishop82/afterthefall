@@ -70,7 +70,10 @@ function updateResourceAlerts(rows) {
     badge.setAttribute('aria-label',resource+' warning: '+badge.title);
   }
 }
+let resourceRefreshRunning=false, resourceRefreshAgain=false, resourceRefreshTimer;
 async function refreshSupplies() {
+  if(resourceRefreshRunning){resourceRefreshAgain=true;return;}
+  resourceRefreshRunning=true;window.clearTimeout(resourceRefreshTimer);
   try {
     const response = await fetch('/api/resources', {cache: 'no-store'});
     if (!response.ok) throw new Error('Could not read supplies');
@@ -245,8 +248,11 @@ async function refreshSupplies() {
   } catch (error) {
     connectionStatus.textContent = 'Could not refresh values. Retrying automatically; your save is retained.';
   } finally {
-    window.setTimeout(refreshSupplies, 5000);
+    resourceRefreshRunning=false;
+    resourceRefreshTimer=window.setTimeout(refreshSupplies,resourceRefreshAgain ? 0 : 5000);
+    resourceRefreshAgain=false;
   }
 }
 
-window.setTimeout(refreshSupplies, 5000);
+window.addEventListener('refresh-supplies',()=>refreshSupplies());
+resourceRefreshTimer=window.setTimeout(refreshSupplies, 5000);

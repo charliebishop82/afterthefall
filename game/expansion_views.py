@@ -9,14 +9,8 @@ from game.settlement import account_scope,read_state
 
 
 def scores(connection, state):
-    players=[]
-    rows=connection.execute('SELECT account_id FROM settlements WHERE season_id=? ORDER BY settlement_id',(state['season']['season_id'],)).fetchall()
-    for row in rows:
-        with account_scope(row[0]):
-            current=read_state(connection);sid=current['settlement']['settlement_id']
-            result=scoring.totals(current,banking.loans(connection,sid),banking.investments(connection,sid))
-            players.append(dict(result,settlement_id=sid,name=current['settlement']['settlement_name'],processed_at=current['settlement']['simulation_processed_at']))
-    return scoring.rank(players)
+    from game.scoring_reader import saved_scores
+    return saved_scores(connection,state['season']['season_id'])
 
 
 def panel(path, state, token, now):

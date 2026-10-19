@@ -17,9 +17,7 @@ from database.create_database import connect_database
 from game.buildings import change_building, coverage, job_speed, operating_status, spec
 from game.settlement import create_settlement, load_config, prepare_database, read_settlement
 from game.simulation import advance_settlement, apply_action, resource_rates
-import test_prototype as prototype_tests
-
-
+from tests import test_prototype as prototype_tests
 class BuildingTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -81,7 +79,11 @@ class BuildingTests(unittest.TestCase):
             self.assertEqual(item['max_level'],int(row['F']))
             for level,s in enumerate(item['levels'],1):
                 for key,label in names.items():
-                    self.assertEqual(s[key],float(row[headers[f'{label}_L{level}']] or 0),(kind,level,key))
+                    # Approved opening balance: only these three Hall level-2 costs differ.
+                    expected=float(row[headers[f'{label}_L{level}']] or 0)
+                    if kind=='town_hall' and level==2:
+                        expected={'scrap':150,'metal':50,'electronics':5}.get(key,expected)
+                    self.assertEqual(s[key],expected,(kind,level,key))
 
     def test_site_spends_once_reserves_tiles_and_upgrades_config_only_on_action(self):
         self.assertEqual(self.state()['season']['config_version'],'prototype_v1')

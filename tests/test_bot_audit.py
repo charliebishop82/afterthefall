@@ -58,7 +58,7 @@ class BotAuditTests(unittest.TestCase):
 
     def test_affordable_production_upgrade_addresses_a_supply_deficit(self):
         from game.bot_policy import choose
-        state=dict(season={'status':'active','finalization_at':2000},
+        state=dict(season={'status':'active','finalization_at':2000,'config_version':'prototype_v13'},
                    settlement={'status':'active','simulation_processed_at':1000},
                    resources=dict(food=20,water=50,scrap=100,metal=100,electronics=100),
                    citizens=[dict(citizen_id=1,assignment='administrator',current_hp=100,building_id=1,job_id=None),
@@ -72,6 +72,7 @@ class BotAuditTests(unittest.TestCase):
         target=dict(current,food=20)
         with patch('game.bot_policy.spec',side_effect=lambda state,b,level=None:target if level==2 else current), \
              patch('game.economy.storage',return_value=dict(food=100,water=100,material=300)), \
+             patch('game.economy.food_lock',return_value={'protected_food':0}), \
              patch('game.population.housing',return_value={'homeless':0}), \
              patch('game.bot_recovery.choose_supply',return_value=None):
             decision=choose(state,{'food':{'net':-5},'water':{'net':0}},1,'balanced')
